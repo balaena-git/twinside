@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>TwinSide — Создание анкеты</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- FAVICONS -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+<link rel="mask-icon" href="assets/icons/logo.svg" color="#7F3DF4">
+<meta name="theme-color" content="#0B0B0D">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://twinside.com/">
+<meta property="og:title" content="TwinSide — закрытая соцсеть для взрослых">
+<meta property="og:description" content="Приватное комьюнити, где стиль, страсть и доверие соединяются. Только 18+, только реальные люди.">
+<meta property="og:image" content="https://twinside.com/assets/preview.jpg">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://twinside.com/">
+<meta name="twitter:title" content="TwinSide — закрытая соцсеть для взрослых">
+<meta name="twitter:description" content="Приватная сеть, где встречаются стиль, доверие и страсть. Только 18+.">
+<meta name="twitter:image" content="https://twinside.com/assets/preview.jpg">
+
+  <style>
+    :root {
+      --gold: #F2C94C;
+      --violet: #7F3DF4;
+      --black: #0B0B0D;
+      --carbon: #141418;
+      --text-hi: #fff;
+      --text-med: #CFCFE2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: var(--black);
+      color: var(--text-hi);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url("https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=1600&q=80") no-repeat center/cover;
+      filter: brightness(0.35) blur(3px);
+      z-index: -2;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, rgba(11,11,13,0.6) 0%, rgba(11,11,13,0.95) 100%);
+      z-index: -1;
+    }
+    .box {
+      background: var(--carbon);
+      padding: 30px;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 0 24px rgba(127,61,244,0.25);
+      animation: fadeUp .6s ease;
+    }
+    h1 {
+      text-align: center;
+      color: var(--gold);
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+    label {
+      font-size: 14px;
+      color: var(--text-med);
+      display: block;
+      margin-bottom: 6px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      border: 1px solid #1C1C22;
+      background: var(--black);
+      color: var(--text-hi);
+      font-size: 15px;
+    }
+    textarea { resize: none; height: 90px; }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--violet);
+      box-shadow: 0 0 8px rgba(127,61,244,0.5);
+    }
+    .choice-group, .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .choice-btn {
+      background: #1C1C22;
+      border: 1px solid #2A2A33;
+      color: var(--text-med);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .choice-btn.active {
+      background: var(--violet);
+      border-color: var(--violet);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(127,61,244,0.5);
+    }
+    .preview {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .preview img {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--violet);
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 20px;
+      font-weight: 600;
+      background: var(--gold);
+      color: var(--black);
+      cursor: pointer;
+      transition: all .25s ease;
+      box-shadow: 0 0 18px rgba(242,201,76,0.35);
+    }
+    button:hover { filter: brightness(1.08); transform: translateY(-2px); }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .verify-hint {
+      font-size: 14px;
+      color: var(--text-med);
+      background: rgba(127,61,244,0.15);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+    }
+    .success {
+      text-align: center;
+      font-size: 18px;
+      color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+  <div class="box" id="form-box">
+    <h1>Создание анкеты</h1>
+    <form id="profile-form">
+      <label>Аватар</label>
+      <input type="file" id="avatar" accept="image/*" required>
+      <div class="preview" id="avatar-preview"></div>
+
+      <label>Фото для верификации</label>
+      <div class="verify-hint" id="verify-hint"></div>
+      <input type="file" id="verify" accept="image/*" required>
+      <div class="preview" id="verify-preview"></div>
+
+      <label>О себе</label>
+      <textarea id="about" maxlength="300" placeholder="Коротко расскажите о себе..."></textarea>
+
+      <label>Кого ищете</label>
+      <div class="choice-group" id="looking-group">
+        <div class="choice-btn" data-value="woman">Женщину</div>
+        <div class="choice-btn" data-value="man">Мужчину</div>
+        <div class="choice-btn" data-value="pair">Пару</div>
+        <div class="choice-btn" data-value="trans_woman">Транс-женщину</div>
+        <div class="choice-btn" data-value="trans_man">Транс-мужчину</div>
+      </div>
+
+      <label>Интересы</label>
+      <div class="tags" id="interests-group"></div>
+
+      <button type="submit">Отправить на модерацию</button>
+    </form>
+  </div>
+
+  <div class="box success" id="success-box" style="display:none;">
+    <h1>✅ Анкета отправлена</h1>
+    <p>Ваша анкета отправлена на проверку.<br>
+    Мы уведомим вас по email, когда модерация завершится.</p>
+    <button onclick="window.location.href='auth.html'">На главную</button>
+  </div>
+
+  <script>
+    // === Превью фото ===
+    function preview(input, previewBox) {
+      previewBox.innerHTML = "";
+      const file = input.files[0];
+      if (!file) return;
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      previewBox.appendChild(img);
+    }
+
+    const avatarInput = document.getElementById('avatar');
+    const verifyInput = document.getElementById('verify');
+    const avatarPreview = document.getElementById('avatar-preview');
+    const verifyPreview = document.getElementById('verify-preview');
+    avatarInput.onchange = () => preview(avatarInput, avatarPreview);
+    verifyInput.onchange = () => preview(verifyInput, verifyPreview);
+
+    // === Автоматическая дата ===
+    const hint = document.getElementById('verify-hint');
+    function updateHint() {
+      const now = new Date();
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      const str = now.toLocaleString('ru-RU', options);
+      hint.innerHTML = `🗓️ Напишите на листике: <b>TwinSide — ${str}</b>`;
+    }
+    updateHint();
+
+    // === Кого ищете ===
+    const lookingGroup = document.getElementById('looking-group');
+    lookingGroup.addEventListener('click', e => {
+      if (!e.target.classList.contains('choice-btn')) return;
+      e.target.classList.toggle('active');
+    });
+
+    // === Интересы ===
+    const interests = [
+      "Путешествия","Музыка","Фильмы","Йога","BDSM","Вечеринки",
+      "Флирт","Романтика","Фитнес","Игры","Массаж","Ролевые игры",
+      "Фото","Кальян","Кино","Коктейли","Пляж","Косплей"
+    ];
+    const interestsGroup = document.getElementById('interests-group');
+    interests.forEach(i=>{
+      const btn=document.createElement('div');
+      btn.className='choice-btn';
+      btn.textContent=i;
+      btn.dataset.value=i;
+      interestsGroup.appendChild(btn);
+    });
+    interestsGroup.addEventListener('click', e=>{
+      if(!e.target.classList.contains('choice-btn'))return;
+      e.target.classList.toggle('active');
+    });
+
+    // === Отправка ===
+    const form=document.getElementById('profile-form');
+    const formBox=document.getElementById('form-box');
+    const successBox=document.getElementById('success-box');
+
+    form.onsubmit=async(e)=>{
+      e.preventDefault();
+      const selectedLooking=[...lookingGroup.querySelectorAll('.choice-btn.active')].map(b=>b.dataset.value);
+      const selectedInterests=[...interestsGroup.querySelectorAll('.choice-btn.active')].map(b=>b.dataset.value);
+
+      const formData=new FormData();
+      formData.append('avatar',avatarInput.files[0]);
+      formData.append('verify_photo',verifyInput.files[0]);
+      formData.append('about',document.getElementById('about').value);
+      formData.append('looking_for',selectedLooking.join(','));
+      formData.append('interests',selectedInterests.join(','));
+
+      const res=await fetch('http://localhost:3000/profile/setup',{method:'POST',body:formData,credentials: 'include'});
+      const data=await res.json();
+
+      if(data.ok){
+        formBox.style.display="none";
+        successBox.style.display="block";
+      } else {
+        alert("Ошибка: "+(data.error||"не удалось отправить анкету"));
+      }
+    };
+  </script>
+  <script src="components/layout.js"></script>
+
+</body>
+</html>

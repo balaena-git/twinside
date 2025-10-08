@@ -1,0 +1,27 @@
+#site-header {
+  background:#141418;
+  color:#fff;
+  padding:16px 20px;
+  box-shadow:0 2px 10px rgba(127,61,244,.2);
+}
+.header-inner {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1000px;
+  margin:0 auto;
+}
+.logo {
+  font-weight:700;
+  font-size:22px;
+  color:#F2C94C;
+  cursor:pointer;
+  text-shadow:0 0 10px rgba(242,201,76,.5);
+}
+nav a {
+  color:#CFCFE2;
+  text-decoration:none;
+  margin-left:20px;
+  transition:.2s;
+}
+nav a:hover { color:#F2C94C; }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Политика конфиденциальности — TwinSide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --gold:#F2C94C;--violet:#7F3DF4;--black:#0B0B0D;--glass:rgba(20,20,25,0.6);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:"Inter",sans-serif;
+      background:var(--black);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      padding:40px 20px;
+      background:url("https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
+    }
+    body::after{
+      content:"";position:fixed;inset:0;background:rgba(11,11,13,0.9);z-index:-1;
+    }
+    .box{
+      max-width:800px;
+      background:var(--glass);
+      backdrop-filter:blur(10px);
+      padding:40px;
+      border-radius:16px;
+      box-shadow:0 0 30px rgba(127,61,244,0.35);
+    }
+    h1{color:var(--gold);margin-bottom:20px;text-align:center;}
+    ul{margin-left:20px;margin-bottom:20px;}
+    li{margin-bottom:8px;}
+    a{color:var(--violet);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Политика конфиденциальности</h1>
+    <p>TwinSide уважает вашу приватность. Мы собираем минимальные данные, необходимые для работы сервиса:</p>
+    <ul>
+      <li>Электронная почта — для авторизации и уведомлений.</li>
+      <li>Возраст, город и пол — для подбора рекомендаций.</li>
+      <li>Фото и описание — только с вашего согласия.</li>
+    </ul>
+    <p>Ваши данные не передаются третьим лицам и могут быть удалены по вашему запросу через поддержку.</p>
+    <p style="margin-top:20px;text-align:center;">
+      <a href="index.html">← Вернуться на главную</a>
+    </p>
+  </div>
+</body>
+</html>

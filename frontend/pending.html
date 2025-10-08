@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>TwinSide — Анкета на модерации</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- FAVICONS -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+<link rel="mask-icon" href="assets/icons/logo.svg" color="#7F3DF4">
+<meta name="theme-color" content="#0B0B0D">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://twinside.com/">
+<meta property="og:title" content="TwinSide — закрытая соцсеть для взрослых">
+<meta property="og:description" content="Приватное комьюнити, где стиль, страсть и доверие соединяются. Только 18+, только реальные люди.">
+<meta property="og:image" content="https://twinside.com/assets/preview.jpg">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://twinside.com/">
+<meta name="twitter:title" content="TwinSide — закрытая соцсеть для взрослых">
+<meta name="twitter:description" content="Приватная сеть, где встречаются стиль, доверие и страсть. Только 18+.">
+<meta name="twitter:image" content="https://twinside.com/assets/preview.jpg">
+
+  <style>
+    :root {
+      --gold:#F2C94C;--violet:#7F3DF4;--black:#0B0B0D;
+      --carbon:#141418;--text-hi:#fff;--text-med:#CFCFE2;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;font-family:"Inter",sans-serif;background:var(--black);
+      color:var(--text-hi);display:flex;align-items:center;justify-content:center;height:100vh;
+    }
+    body::before{
+      content:"";position:fixed;inset:0;
+      background:url("https://images.unsplash.com/photo-1533577116850-9cc66cad8a9b?auto=format&fit=crop&w=1600&q=80") no-repeat center/cover;
+      filter:brightness(.35) blur(3px);z-index:-2;
+    }
+    body::after{
+      content:"";position:fixed;inset:0;
+      background:linear-gradient(180deg,rgba(11,11,13,.6)0%,rgba(11,11,13,.95)100%);z-index:-1;
+    }
+    .box{
+      background:var(--carbon);padding:40px 30px;border-radius:14px;
+      width:100%;max-width:460px;text-align:center;
+      box-shadow:0 0 24px rgba(127,61,244,.25);
+      animation:fadeUp .6s ease;
+    }
+    h1{color:var(--gold);margin-bottom:10px;font-size:26px;}
+    p{color:var(--text-med);font-size:15px;line-height:1.5;margin-bottom:25px;}
+    .avatar{
+      width:100px;height:100px;border-radius:50%;object-fit:cover;
+      border:2px solid var(--violet);margin-bottom:15px;
+      box-shadow:0 0 12px rgba(127,61,244,.4);
+    }
+    button{
+      background:var(--gold);color:var(--black);
+      border:none;padding:12px 26px;border-radius:22px;font-weight:600;
+      cursor:pointer;transition:.25s;
+      box-shadow:0 0 18px rgba(242,201,76,.35);
+    }
+    button:hover{filter:brightness(1.1);transform:translateY(-2px);}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  </style>
+</head>
+<body>
+  <div class="box" id="pendingBox">
+    <img src="" alt="Аватар" id="avatar" class="avatar" style="display:none;">
+    <h1 id="userNick">TwinSide</h1>
+    <p>Анкета отправлена и находится на модерации.<br>
+    Обычно проверка занимает не более 24 часов.<br><br>
+    Мы уведомим вас по email, когда она будет одобрена.</p>
+    <button id="logoutBtn">Выйти</button>
+  </div>
+
+  <script>
+    async function fetchStatus(){
+      try{
+        const res=await fetch('http://localhost:3000/me/status',{credentials:'include'});
+        const data=await res.json();
+        if(!data.ok){window.location.href='auth.html';return;}
+        document.getElementById('userNick').textContent=data.nick||'TwinSide';
+        if(data.avatar_path){
+          const img=document.getElementById('avatar');
+          img.src='http://localhost:3000'+data.avatar_path;
+          img.style.display='block';
+        }
+        if(data.status==='approved')window.location.href='feed.html';
+        else if(data.status==='rejected')window.location.href='rejected.html';
+      }catch(e){
+        console.error(e);
+        alert('Ошибка загрузки статуса.');
+      }
+    }
+
+    async function logout(){
+      await fetch('http://localhost:3000/auth/logout',{method:'POST',credentials:'include'});
+      window.location.href='auth.html';
+    }
+
+    document.getElementById('logoutBtn').onclick=logout;
+    fetchStatus();
+  </script>
+  <script src="components/layout.js"></script>
+
+</body>
+</html>

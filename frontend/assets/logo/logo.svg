@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120">
+  <defs>
+    <linearGradient id="neonGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F2C94C"></stop>
+      <stop offset="100%" stop-color="#FFD966"></stop>
+    </linearGradient>
+    <linearGradient id="neonViolet" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7F3DF4"></stop>
+      <stop offset="100%" stop-color="#B78AFF"></stop>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"></feGaussianBlur>
+      <feMerge>
+        <feMergeNode in="coloredBlur"></feMergeNode>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- фон -->
+  <rect width="480" height="120" fill="none"></rect>
+
+  <!-- иконка -->
+  <g transform="translate(35,30)" filter="url(#glow)">
+    <path d="M20 50 C10 35, 30 10, 50 35 C70 10, 90 35, 80 50 C70 65, 30 65, 20 50Z" fill="url(#neonViolet)" stroke="url(#neonGold)" stroke-width="2"></path>
+  </g>
+
+  <!-- текст -->
+  <text x="130" y="75" font-family="Poppins, Inter, sans-serif" font-size="52" font-weight="700" fill="url(#neonGold)" stroke="#7F3DF4" stroke-width="1" filter="url(#glow)">
+    TwinSide
+  </text>
+</svg>
