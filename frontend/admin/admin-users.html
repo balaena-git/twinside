@@ -210,6 +210,7 @@
           <td>
             <button class="action-btn" onclick="toggleBan(${u.id}, ${u.banned ? 0 : 1})">${u.banned ? "Разбанить" : "Забанить"}</button>
             <button class="action-btn" onclick="editBalance(${u.id}, ${u.balance})">💰 Баланс</button>
+            <button class="action-btn" onclick="impersonate(${u.id})">👤 Войти</button>
             <button class="action-btn" onclick="togglePremium(${u.id}, ${u.premium ? 0 : 1})">${u.premium ? "Снять⭐" : "Дать⭐"}</button>
             ${u.is_fake ? `<button class="action-btn" onclick="deleteFake(${u.id})">🗑 Удалить</button>` : ""}
           </td>
@@ -264,6 +265,17 @@
       loadUsers();
     }
 
+    async function impersonate(id) {
+  const res = await fetch(`${API}/impersonate/${id}`, { method: "POST", credentials: "include" });
+  const data = await res.json();
+  if (data.ok) {
+    window.open(`/auth/impersonate?token=${data.token}`, "_blank");
+  } else {
+    alert("Ошибка входа: " + data.error);
+  }
+}
+
+
     // === Создание фейка ===
     document.getElementById("create-fake").onclick = async () => {
   const nick = prompt("Введите ник фейка:");
@@ -272,7 +284,7 @@
   const gender = prompt("Пол (man / woman / pair / trans):", "woman");
   const about = prompt("Описание (опционально):", "Фейковый профиль для теста.");
 
-  const res = await fetch(`${API}/fake`, {
+  const res = await fetch(`${API}/users/fake`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -301,6 +313,40 @@
     };
 
     loadUsers();
+
+    document.getElementById("sendFake").onclick = async () => {
+  const nick = document.getElementById("fakeNick").value.trim();
+  if (!nick) return alert("Введите ник!");
+  const city = document.getElementById("fakeCity").value.trim();
+  const gender = document.getElementById("fakeGender").value;
+  const about = document.getElementById("fakeAbout").value.trim();
+  const file = document.getElementById("fakeAvatar").files[0];
+
+  const fd = new FormData();
+  fd.append("nick", nick);
+  fd.append("city", city);
+  fd.append("gender", gender);
+  fd.append("about", about);
+  if (file) fd.append("avatar", file);
+
+  try {
+    const res = await fetch(`${API}/users/fake`, {
+      method: "POST",
+      credentials: "include",
+      body: fd
+    });
+    const data = await res.json();
+    if (data.ok) {
+      alert("✅ Фейк создан!");
+      loadUsers(); // обновляем таблицу
+    } else {
+      alert("Ошибка: " + data.error);
+    }
+  } catch (e) {
+    alert("Ошибка отправки: " + e.message);
+  }
+};
+
   </script>
 </body>
 </html>

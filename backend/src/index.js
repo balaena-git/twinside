@@ -14,6 +14,24 @@ import { fileURLToPath } from 'url';
 import adminRoutes from './routes/admin.js';
 import db from './db.js';
 
+// ленивые миграции недостающих колонок
+try {
+  const cols = db.prepare(`PRAGMA table_info(users)`).all().map(c => c.name);
+  const add = (sql) => db.exec(sql);
+
+  if (!cols.includes('about'))        add(`ALTER TABLE users ADD COLUMN about TEXT;`);
+  if (!cols.includes('looking_for'))  add(`ALTER TABLE users ADD COLUMN looking_for TEXT;`);
+  if (!cols.includes('interests'))    add(`ALTER TABLE users ADD COLUMN interests TEXT;`);
+  if (!cols.includes('avatar_path'))  add(`ALTER TABLE users ADD COLUMN avatar_path TEXT;`);
+  if (!cols.includes('verify_path'))  add(`ALTER TABLE users ADD COLUMN verify_path TEXT;`);
+  if (!cols.includes('premium'))      add(`ALTER TABLE users ADD COLUMN premium INTEGER DEFAULT 0;`);
+  if (!cols.includes('balance'))      add(`ALTER TABLE users ADD COLUMN balance INTEGER DEFAULT 0;`);
+  if (!cols.includes('last_active'))  add(`ALTER TABLE users ADD COLUMN last_active TEXT;`);
+} catch(e) {
+  console.error('DB migration error:', e);
+}
+
+
 dotenv.config();
 
 // === app setup ===
@@ -24,6 +42,18 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// создаём папки под загрузки, если их нет
+fs.mkdirSync(path.join(__dirname, '..', 'uploads', 'avatars'), { recursive: true });
+fs.mkdirSync(path.join(__dirname, '..', 'uploads', 'verify'), { recursive: true });
+
+// === Гарантируем, что нужные папки для загрузок существуют ===
+const UPLOADS = path.join(__dirname, '..', 'uploads');
+const AVATARS = path.join(UPLOADS, 'avatars');
+const VERIFY  = path.join(UPLOADS, 'verify');
+[UPLOADS, AVATARS, VERIFY].forEach(p => {
+  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+});
 
 
 app.use(cors({ origin: true, credentials: true }));
@@ -332,7 +362,19 @@ app.get('/me/status', authMiddleware, (req, res) => {
 
 });
 
-app.listen(PORT, () => console.log(`TwinSide API running on ${APP_URL}`));
+app.get("/auth/impersonate", (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send("missing token");
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    res.cookie("auth", token, { httpOnly: true, sameSite: "lax" });
+    res.redirect("/"); // редирект в приложение
+  } catch {
+    res.status(400).send("expired or invalid token");
+  }
+});
+
+
 
 // 8) Заполнение анкеты
 app.post('/profile/setup',
@@ -490,9 +532,25 @@ app.get('/me/status', authMiddleware, (req, res) => {
   }
 });
 
+// === Имперсонация (автоматический вход под пользователем) ===
+app.get("/auth/impersonate", (req, res) => {
+  const { token } = req.query;
+  try {
+    const data = jwt.verify(token, JWT_SECRET);
+    const authToken = jwt.sign({ uid: data.uid }, JWT_SECRET, { expiresIn: "7d" });
+    res.cookie("auth", authToken, { httpOnly: true, sameSite: "lax" });
+    res.redirect("/"); // после входа открывает сайт как пользователь
+  } catch (e) {
+    console.error("Имперсонация:", e);
+    res.status(400).send("Invalid impersonation token");
+  }
+});
+
+
 // 10) Logout (очистка cookie)
 app.post('/auth/logout', (req, res) => {
   res.clearCookie('auth');
   return res.json({ ok: true });
 });
 
+app.listen(PORT, () => console.log(`TwinSide API running on ${APP_URL}`));

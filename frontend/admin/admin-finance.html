@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>💰 Финансы — TwinSide Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../assets/admin.css" />
+  <style>
+    main { padding: 20px; }
+    .tabs { display:flex; gap:10px; margin-bottom:20px; }
+    .tabs button {
+      background:#141418; color:#fff; border:1px solid #7F3DF4;
+      border-radius:8px; padding:10px 18px; cursor:pointer;
+    }
+    .tabs button.active { background:#7F3DF4; color:#fff; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th,td {
+      padding:10px; border-bottom:1px solid rgba(255,255,255,.1);
+      text-align:left; font-size:14px; color:#eaeaea;
+    }
+    th { color:#F2C94C; font-weight:600; }
+    .form-row { margin:15px 0; display:flex; gap:10px; align-items:center; }
+    .form-row input, .form-row textarea {
+      background:#141418; color:#fff; border:none; border-radius:6px;
+      padding:8px 10px; flex:1;
+    }
+    .btn { background:#7F3DF4; color:#fff; border:none;
+      border-radius:6px; padding:8px 14px; cursor:pointer;
+    }
+    .btn.gold { background:#F2C94C; color:#000; font-weight:600; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>💰 Финансы</h1>
+  <nav class="admin-nav">
+    <a href="/admin/admin.html">🏠 Дашборд</a>
+    <a href="/admin/admin-pending.html">Анкеты</a>
+    <a href="/admin/admin-users.html">Пользователи</a>
+    <a class="active" href="/admin/admin-finance.html">Финансы</a>
+    <a href="/admin/admin-promos.html">Промокоды</a>
+    <a href="/admin/admin-support.html">Поддержка</a>
+    <a href="/admin/admin-ads.html">Реклама</a>
+  </nav>
+  <button id="logout" class="btn">Выйти</button>
+</header>
+
+<main>
+    <section id="finance-stats" class="finance-stats">
+  <h2>📈 Финансовая сводка</h2>
+  <div id="stats-grid" class="stats-grid">
+    <div class="stat-card">
+      <h3>💰 Общий баланс</h3><p id="stat-balance">—</p>
+    </div>
+    <div class="stat-card">
+      <h3>🧾 Всего выводов</h3><p id="stat-withdrawn">—</p>
+    </div>
+    <div class="stat-card">
+      <h3>⏳ Ожидает вывод</h3><p id="stat-pending">—</p>
+    </div>
+    <div class="stat-card">
+      <h3>👑 Премиумов</h3><p id="stat-premium">—</p>
+    </div>
+    <div class="stat-card">
+      <h3>📊 Транзакций</h3><p id="stat-tx">—</p>
+    </div>
+    <div class="stat-card">
+      <h3>💸 Доход 24ч</h3><p id="stat-income">—</p>
+    </div>
+  </div>
+</section>
+
+
+  <div class="tabs">
+    <button class="active" data-tab="withdraws">🪙 Выводы</button>
+    <button data-tab="manual">💵 Начисления</button>
+    <button data-tab="premium">👑 Премиум</button>
+    <button data-tab="history">📊 История</button>
+  </div>
+
+  <!-- Выводы -->
+  <section id="withdraws" class="tab-content">
+    <h2>🪙 Заявки на вывод</h2>
+    <table id="withdraw-table">
+      <thead>
+        <tr><th>ID</th><th>Пользователь</th><th>Сумма</th><th>Статус</th><th>TX Hash</th><th>Действия</th></tr>
+      </thead>
+      <tbody><tr><td colspan="6" style="text-align:center;color:#999;">Загрузка...</td></tr></tbody>
+    </table>
+  </section>
+
+  <!-- Ручные начисления -->
+  <section id="manual" class="tab-content" style="display:none;">
+    <h2>💵 Ручное начисление</h2>
+    <div class="form-row"><input id="manual-email" type="email" placeholder="Email пользователя"></div>
+    <div class="form-row"><input id="manual-amount" type="number" placeholder="Сумма"></div>
+    <div class="form-row"><textarea id="manual-desc" placeholder="Комментарий"></textarea></div>
+    <button class="btn gold" onclick="manualCredit()">Начислить 💸</button>
+  </section>
+
+  <!-- Премиум -->
+  <section id="premium" class="tab-content" style="display:none;">
+    <h2>👑 Выдать премиум</h2>
+    <div class="form-row"><input id="premium-id" type="number" placeholder="ID пользователя"></div>
+    <div class="form-row"><input id="premium-days" type="number" value="30" placeholder="Дней премиума"></div>
+    <button class="btn gold" onclick="givePremium()">Выдать 👑</button>
+  </section>
+
+  <!-- История -->
+  <section id="history" class="tab-content" style="display:none;">
+    <h2>📊 История транзакций</h2>
+    <table id="tx-table">
+      <thead><tr><th>ID</th><th>Email</th><th>Тип</th><th>Сумма</th><th>Комментарий</th><th>Дата</th></tr></thead>
+      <tbody><tr><td colspan="6" style="text-align:center;color:#999;">Загрузка...</td></tr></tbody>
+    </table>
+  </section>
+</main>
+
+<footer>© TwinSide Admin 2025</footer>
+
+<script>
+const API = "http://localhost:3000/api/admin";
+
+// === Tabs ===
+document.querySelectorAll(".tabs button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".tab-content").forEach(sec => sec.style.display = "none");
+    document.getElementById(btn.dataset.tab).style.display = "block";
+    if (btn.dataset.tab === "withdraws") loadWithdraws();
+    if (btn.dataset.tab === "history") loadTransactions();
+  };
+});
+
+// === Logout ===
+document.getElementById("logout").onclick = async () => {
+  await fetch(`${API}/logout`, { method: "POST", credentials: "include" });
+  location.href = "/admin/admin.html";
+};
+
+// === Load Withdraws ===
+async function loadWithdraws() {
+  const tbody = document.querySelector("#withdraw-table tbody");
+  tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#999;'>Загрузка...</td></tr>";
+  const res = await fetch(`${API}/withdraws`, { credentials: "include" });
+  const data = await res.json();
+  if (!data.ok || !data.withdraws.length)
+    return tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#999;'>Нет заявок</td></tr>";
+
+  tbody.innerHTML = "";
+  data.withdraws.forEach(w => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${w.id}</td>
+      <td>${w.nick || w.email}</td>
+      <td>${w.amount}</td>
+      <td>${w.status}</td>
+      <td>${w.tx_hash || "—"}</td>
+      <td>
+        ${w.status === "pending" ? `
+          <button class="btn gold" onclick="approveWithdraw(${w.id})">✅</button>
+          <button class="btn" onclick="rejectWithdraw(${w.id})">❌</button>` : "—"}
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// === Approve / Reject Withdraw ===
+async function approveWithdraw(id) {
+  const hash = prompt("Введите TX hash:");
+  if (!hash) return;
+  await fetch(`${API}/withdraw/${id}`, {
+    method: "PATCH",
+    headers: {"Content-Type":"application/json"},
+    credentials: "include",
+    body: JSON.stringify({ tx_hash: hash })
+  });
+  loadWithdraws();
+}
+
+async function rejectWithdraw(id) {
+  const reason = prompt("Причина отклонения:");
+  if (!reason) return;
+  await fetch(`${API}/withdraw/${id}`, {
+    method: "PATCH",
+    headers: {"Content-Type":"application/json"},
+    credentials: "include",
+    body: JSON.stringify({ reject:true, reason })
+  });
+  loadWithdraws();
+}
+
+// === Manual Credit ===
+async function manualCredit() {
+  const email = document.getElementById("manual-email").value.trim();
+  const amount = parseInt(document.getElementById("manual-amount").value);
+  const desc = document.getElementById("manual-desc").value.trim();
+  if (!email || !amount) return alert("Введите email и сумму!");
+  const res = await fetch(`${API}/manual-credit`, {
+    method:"POST", headers:{"Content-Type":"application/json"}, credentials:"include",
+    body:JSON.stringify({ email, amount, description: desc })
+  });
+  const data = await res.json();
+  alert(data.ok ? "✅ Баланс пополнен!" : "Ошибка: " + data.error);
+}
+
+// === Premium ===
+async function givePremium() {
+  const id = parseInt(document.getElementById("premium-id").value);
+  const days = parseInt(document.getElementById("premium-days").value);
+  if (!id) return alert("Введите ID пользователя!");
+  const res = await fetch(`${API}/premium`, {
+    method:"POST", headers:{"Content-Type":"application/json"}, credentials:"include",
+    body:JSON.stringify({ user_id:id, days })
+  });
+  const data = await res.json();
+  alert(data.ok ? "👑 Премиум выдан до " + new Date(data.until).toLocaleDateString() : "Ошибка");
+}
+
+// === Load Transactions ===
+async function loadTransactions() {
+  const tbody = document.querySelector("#tx-table tbody");
+  tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#999;'>Загрузка...</td></tr>";
+  const res = await fetch(`${API}/transactions`, { credentials:"include" });
+  const data = await res.json();
+  if (!data.ok || !data.list?.length)
+    return tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#999;'>Нет транзакций</td></tr>";
+
+  tbody.innerHTML = "";
+  data.list.forEach(t => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${t.id}</td>
+      <td>${t.email || t.user_id}</td>
+      <td>${t.type}</td>
+      <td>${t.amount}</td>
+      <td>${t.description || "—"}</td>
+      <td>${new Date(t.created_at).toLocaleString("ru-RU")}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// — авто-загрузка
+loadWithdraws();
+</script>
+</body>
+</html>
