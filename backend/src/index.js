@@ -6,13 +6,22 @@ import multer from 'multer';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import cookieParser from 'cookie-parser';
+import session from 'express-session';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
 import adminRoutes from './routes/admin.js';
 import db from './db.js';
+import {
+  PORT,
+  APP_URL,
+  JWT_SECRET,
+  SESSION_SECRET,
+  COOKIE_SECURE,
+  SAME_SITE,
+  BACKEND_ROOT,
+  UPLOADS_ROOT,
+} from './config.js';
 
 // ленивые миграции недостающих колонок
 try {
@@ -32,57 +41,49 @@ try {
 }
 
 
-dotenv.config();
-
 // === app setup ===
 const app = express();
-const PORT = process.env.PORT || 3000;
-const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
-const JWT_SECRET = process.env.JWT_SECRET;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// создаём папки под загрузки, если их нет
-fs.mkdirSync(path.join(__dirname, '..', 'uploads', 'avatars'), { recursive: true });
-fs.mkdirSync(path.join(__dirname, '..', 'uploads', 'verify'), { recursive: true });
 
 // === Гарантируем, что нужные папки для загрузок существуют ===
-const UPLOADS = path.join(__dirname, '..', 'uploads');
+const UPLOADS = UPLOADS_ROOT;
 const AVATARS = path.join(UPLOADS, 'avatars');
 const VERIFY  = path.join(UPLOADS, 'verify');
-[UPLOADS, AVATARS, VERIFY].forEach(p => {
-  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
-});
+
+const ensureDir = (dir) => {
+  fs.mkdirSync(dir, { recursive: true });
+};
+
+[UPLOADS, AVATARS, VERIFY].forEach(ensureDir);
 
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
-import session from "express-session";
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "twinside_secret",
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // если HTTPS — поставим true
-      maxAge: 24 * 60 * 60 * 1000 // сутки
-    }
+      secure: COOKIE_SECURE,
+      sameSite: SAME_SITE,
+      maxAge: 24 * 60 * 60 * 1000, // сутки
+    },
   })
 );
 
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/uploads', express.static(UPLOADS));
+const FRONTEND_ROOT = path.join(BACKEND_ROOT, '..', 'frontend');
+app.use(express.static(FRONTEND_ROOT));
 app.use("/api/admin", adminRoutes);
 
 // === Multer (загрузка файлов) ===
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const isVerify = file.fieldname === 'verify_photo';
-    const dir = path.join(__dirname, '..', 'uploads', isVerify ? 'verify' : 'avatars');
+    const dir = isVerify ? VERIFY : AVATARS;
     cb(null, dir);
   },
   filename: (req, file, cb) => {
@@ -135,7 +136,12 @@ function authMiddleware(req, res, next) {
     req.user = jwt.verify(token, JWT_SECRET);
     next();
   } catch {
-    res.status(401).json({ error: 'invalid_token' });
+    res.clearCookie('auth', {
+      httpOnly: true,
+      sameSite: SAME_SITE,
+      secure: COOKIE_SECURE,
+    });
+    return res.status(401).json({ error: 'invalid_token' });
   }
 }
 
@@ -298,7 +304,14 @@ app.post('/auth/login', async (req, res) => {
   }
 
   const token = jwt.sign({ uid: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-  res.cookie('auth', token, { httpOnly: true, sameSite: 'lax' }).json({ ok: true, status: user.status });
+  res
+    .cookie('auth', token, {
+      httpOnly: true,
+      sameSite: SAME_SITE,
+      secure: COOKIE_SECURE,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .json({ ok: true, status: user.status });
 });
 
 // 5) Забыли пароль
@@ -347,36 +360,7 @@ app.post('/auth/reset', async (req, res) => {
   res.json({ ok: true });
 });
 
-// 7) Проверка статуса (для фронта)
-app.get('/me/status', authMiddleware, (req, res) => {
-  const user = findUserById.get(req.user.uid);
-  if (!user) return res.json({
-  ok: true,
-  id: user.id,
-  nick: user.nick,
-  email: user.email,
-  status: user.status,
-  avatar_path: user.avatar_path,
-  reject_reason: user.reject_reason || null
-});
-
-});
-
-app.get("/auth/impersonate", (req, res) => {
-  const { token } = req.query;
-  if (!token) return res.status(400).send("missing token");
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    res.cookie("auth", token, { httpOnly: true, sameSite: "lax" });
-    res.redirect("/"); // редирект в приложение
-  } catch {
-    res.status(400).send("expired or invalid token");
-  }
-});
-
-
-
-// 8) Заполнение анкеты
+// 7) Заполнение анкеты
 app.post('/profile/setup',
   authMiddleware,
   upload.fields([
@@ -426,94 +410,7 @@ app.post('/profile/setup',
   }
 );
 
-// === ADMIN ===
-app.get('/admin/pending', (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 6;
-    const offset = (page - 1) * limit;
-
-    // считаем общее количество
-    const total = db.prepare(`SELECT COUNT(*) as c FROM users WHERE status = 'profile_pending'`).get().c;
-    const pages = Math.max(1, Math.ceil(total / limit));
-
-    const rows = db.prepare(`
-      SELECT id, nick, email, city, about, avatar_path, verify_path, created_at
-      FROM users
-      WHERE status = 'profile_pending'
-      ORDER BY id DESC
-      LIMIT ? OFFSET ?
-    `).all(limit, offset);
-
-    res.json({ ok: true, page, pages, total, users: rows });
-  } catch (e) {
-    console.error('Ошибка /admin/pending:', e);
-    res.status(500).json({ ok: false, error: 'server_error' });
-  }
-});
-
-// === ADMIN USERS ===
-
-// список пользователей с поиском
-app.get('/admin/users', (req, res) => {
-  const search = (req.query.search || '').trim().toLowerCase();
-  const rows = search
-    ? db.prepare(`
-        SELECT id, nick, email, city, status, balance,
-               COALESCE(banned, 0) as banned,
-               COALESCE(premium, 0) as premium
-        FROM users
-        WHERE LOWER(email) LIKE ? OR LOWER(nick) LIKE ?
-        ORDER BY id DESC
-      `).all(`%${search}%`, `%${search}%`)
-    : db.prepare(`
-        SELECT id, nick, email, city, status, balance,
-               COALESCE(banned, 0) as banned,
-               COALESCE(premium, 0) as premium
-        FROM users ORDER BY id DESC LIMIT 100
-      `).all();
-  res.json({ ok: true, users: rows });
-});
-// === ADMIN USERS ===
-
-
-
-// обновление данных пользователя (бан, премиум, баланс)
-app.patch('/admin/user/:id', express.json(), (req, res) => {
-  const id = parseInt(req.params.id);
-  const { banned, premium, balance } = req.body;
-  const user = db.prepare(`SELECT * FROM users WHERE id=?`).get(id);
-  if (!user) return res.status(404).json({ ok: false, error: "user_not_found" });
-
-  if (banned !== undefined)
-    db.prepare(`UPDATE users SET banned=? WHERE id=?`).run(banned, id);
-  if (premium !== undefined)
-    db.prepare(`UPDATE users SET premium=? WHERE id=?`).run(premium, id);
-  if (balance !== undefined && !isNaN(balance))
-    db.prepare(`UPDATE users SET balance=? WHERE id=?`).run(balance, id);
-
-  res.json({ ok: true });
-});
-
-
-
-// одобрить анкету
-app.post('/admin/approve/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  db.prepare('UPDATE users SET status="approved", reject_reason=NULL WHERE id=?').run(id);
-  return res.json({ ok: true });
-});
-
-// отклонить анкету
-app.post('/admin/reject/:id', express.json(), (req, res) => {
-  const id = parseInt(req.params.id);
-  const reason = (req.body.reason || 'Без указания причины').slice(0, 300);
-  db.prepare('UPDATE users SET status="rejected", reject_reason=? WHERE id=?').run(reason, id);
-  return res.json({ ok: true });
-});
-
-
-// 9) Проверка статуса текущего пользователя
+// 8) Проверка статуса текущего пользователя
 app.get('/me/status', authMiddleware, (req, res) => {
   try {
     const user = findUserById.get(req.user.uid);
@@ -538,7 +435,12 @@ app.get("/auth/impersonate", (req, res) => {
   try {
     const data = jwt.verify(token, JWT_SECRET);
     const authToken = jwt.sign({ uid: data.uid }, JWT_SECRET, { expiresIn: "7d" });
-    res.cookie("auth", authToken, { httpOnly: true, sameSite: "lax" });
+    res.cookie("auth", authToken, {
+      httpOnly: true,
+      sameSite: SAME_SITE,
+      secure: COOKIE_SECURE,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     res.redirect("/"); // после входа открывает сайт как пользователь
   } catch (e) {
     console.error("Имперсонация:", e);
@@ -547,9 +449,13 @@ app.get("/auth/impersonate", (req, res) => {
 });
 
 
-// 10) Logout (очистка cookie)
+// 9) Logout (очистка cookie)
 app.post('/auth/logout', (req, res) => {
-  res.clearCookie('auth');
+  res.clearCookie('auth', {
+    httpOnly: true,
+    sameSite: SAME_SITE,
+    secure: COOKIE_SECURE,
+  });
   return res.json({ ok: true });
 });
 

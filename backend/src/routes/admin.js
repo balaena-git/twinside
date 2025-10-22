@@ -1,17 +1,20 @@
 import express from "express";
 import db from "../db.js";
-import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
+import {
+  JWT_SECRET,
+  UPLOADS_ROOT,
+} from "../config.js";
 
-dotenv.config();
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { ADMIN_EMAIL, ADMIN_PASS } = process.env;
+
+if (!ADMIN_EMAIL || !ADMIN_PASS) {
+  console.warn("[admin] ADMIN_EMAIL or ADMIN_PASS is not configured — admin login disabled");
+}
 
 // === Авто-создание таблиц для финансов ===
 db.exec(`
@@ -37,24 +40,41 @@ db.exec(`
 `);
 
 
-// === Хранилище для фейковых аватаров ===
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, "..", "..", "uploads", "avatars");
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || "").toLowerCase();
-    cb(null, Date.now() + "-" + Math.random().toString(36).slice(2) + ext);
-  }
+const ensureDir = (dir) => fs.mkdirSync(dir, { recursive: true });
+const randomFileName = (originalName = "") => {
+  const ext = path.extname(originalName).toLowerCase();
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+};
+
+const AVATARS_DIR = path.join(UPLOADS_ROOT, "avatars");
+const SUPPORT_DIR = path.join(UPLOADS_ROOT, "support");
+[AVATARS_DIR, SUPPORT_DIR].forEach(ensureDir);
+
+const avatarUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_, __, cb) => cb(null, AVATARS_DIR),
+    filename: (_, file, cb) => cb(null, randomFileName(file.originalname)),
+  }),
 });
-const upload = multer({ storage });
+
+const supportUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_, __, cb) => cb(null, SUPPORT_DIR),
+    filename: (_, file, cb) => cb(null, randomFileName(file.originalname)),
+  }),
+});
 
 // === Middleware логов ===
 router.use((req, res, next) => {
   console.log("📡 Admin API hit:", req.method, req.url);
   next();
+});
+
+router.use((req, res, next) => {
+  if (req.method === "OPTIONS") return next();
+  if (req.path === "/login" || req.path === "/check-session") return next();
+  if (req.session?.admin) return next();
+  return res.status(401).json({ ok: false, error: "admin_unauthorized" });
 });
 
 // === Список заявок на вывод ===
@@ -76,13 +96,18 @@ router.get("/withdraws", (req, res) => {
 // === Подтверждение / отклонение вывода ===
 router.patch("/withdraw/:id", (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number.parseInt(req.params.id, 10);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ ok: false, error: "invalid_id" });
+    }
     const { tx_hash, reject, reason } = req.body;
 
     const w = db.prepare("SELECT * FROM withdraws WHERE id = ?").get(id);
     if (!w) return res.status(404).json({ ok: false, error: "not_found" });
 
     const newStatus = reject ? "rejected" : "done";
+    const normalizedHash = typeof tx_hash === "string" ? tx_hash.trim() : null;
+    const normalizedReason = typeof reason === "string" ? reason.trim() : null;
 
     db.prepare(`
       UPDATE withdraws SET
@@ -91,17 +116,18 @@ router.patch("/withdraw/:id", (req, res) => {
         reason = ?,
         updated_at = datetime('now')
       WHERE id = ?
-    `).run(newStatus, tx_hash || null, reason || null, id);
+    `).run(newStatus, normalizedHash || null, normalizedReason || null, id);
 
     if (!reject) {
       // списываем баланс пользователя
+      const amount = Number(w.amount) || 0;
       db.prepare("UPDATE users SET balance = balance - ? WHERE id = ?")
-        .run(w.amount, w.user_id);
+        .run(amount, w.user_id);
 
       db.prepare(`
         INSERT INTO transactions (user_id, type, amount, description)
         VALUES (?, 'withdraw', ?, 'Вывод подтверждён')
-      `).run(w.user_id, -w.amount);
+      `).run(w.user_id, -amount);
     }
 
     res.json({ ok: true });
@@ -118,13 +144,19 @@ router.post("/manual-credit", (req, res) => {
     const user = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
     if (!user) return res.status(404).json({ ok: false, error: "user_not_found" });
 
+    const value = Number(amount);
+    if (!Number.isFinite(value)) {
+      return res.status(400).json({ ok: false, error: "invalid_amount" });
+    }
+    const rounded = Math.trunc(value);
+
     db.prepare("UPDATE users SET balance = balance + ? WHERE id = ?")
-      .run(amount, user.id);
+      .run(rounded, user.id);
 
     db.prepare(`
       INSERT INTO transactions (user_id, type, amount, description)
       VALUES (?, 'manual', ?, ?)
-    `).run(user.id, amount, description || "Ручное начисление");
+    `).run(user.id, rounded, (description || "Ручное начисление").slice(0, 200));
 
     res.json({ ok: true });
   } catch (e) {
@@ -136,8 +168,16 @@ router.post("/manual-credit", (req, res) => {
 // === Выдать премиум ===
 router.post("/premium", (req, res) => {
   try {
-    const { user_id, days = 30 } = req.body;
-    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(user_id);
+    const userId = Number.parseInt(req.body.user_id, 10);
+    const days = Number.parseInt(req.body.days ?? 30, 10);
+    if (!Number.isInteger(userId)) {
+      return res.status(400).json({ ok: false, error: "invalid_user_id" });
+    }
+    if (!Number.isInteger(days) || days <= 0) {
+      return res.status(400).json({ ok: false, error: "invalid_days" });
+    }
+
+    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
     if (!user) return res.status(404).json({ ok: false, error: "user_not_found" });
 
     const now = new Date();
@@ -145,12 +185,12 @@ router.post("/premium", (req, res) => {
     const newDate = new Date(base.getTime() + days * 86400000);
 
     db.prepare("UPDATE users SET premium = 1, premium_until = ? WHERE id = ?")
-      .run(newDate.toISOString(), user_id);
+      .run(newDate.toISOString(), userId);
 
     db.prepare(`
       INSERT INTO transactions (user_id, type, amount, description)
       VALUES (?, 'premium', 0, 'Продлён премиум на ${days} дней')
-    `).run(user_id);
+    `).run(userId);
 
     res.json({ ok: true, until: newDate.toISOString() });
   } catch (e) {
@@ -163,7 +203,7 @@ router.post("/premium", (req, res) => {
 // === Авторизация ===
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
-  if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASS) {
+  if (ADMIN_EMAIL && ADMIN_PASS && email === ADMIN_EMAIL && password === ADMIN_PASS) {
     req.session.admin = { email };
     return res.json({ ok: true });
   }
@@ -173,13 +213,6 @@ router.post("/login", (req, res) => {
 router.get("/check-session", (req, res) => {
   if (req.session?.admin) return res.json({ ok: true });
   res.json({ ok: false });
-});
-
-// === Проверка авторизации админа ===
-router.use((req, res, next) => {
-  if (req.path === '/login' || req.path === '/check-session') return next();
-  if (!req.session?.admin) return res.status(401).json({ ok: false, error: 'admin_unauthorized' });
-  next();
 });
 
 
@@ -496,7 +529,7 @@ router.post("/logout", (req, res) => {
 
 // === Создание фейкового пользователя ===
 // === Создание фейкового пользователя с аватаром ===
-router.post("/users/fake", upload.single("avatar"), (req, res) => {
+router.post("/users/fake", avatarUpload.single("avatar"), (req, res) => {
   try {
     const { nick, email, gender = "woman", city = "", about = "" } = req.body;
     if (!nick) return res.status(400).json({ ok: false, error: "nick_required" });
@@ -717,7 +750,7 @@ router.post("/support/thread/:id/message", (req, res) => {
 });
 
 // === 4️⃣ Загрузка файла ===
-router.post("/support/thread/:id/upload", upload.single("file"), (req, res) => {
+router.post("/support/thread/:id/upload", supportUpload.single("file"), (req, res) => {
   try {
     const userId = parseInt(req.params.id);
     const text = req.body.text || "";
