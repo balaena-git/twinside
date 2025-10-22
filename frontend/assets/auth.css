@@ -1,0 +1,224 @@
+.auth-page {
+  min-height: 100vh;
+  /* gradient on top, then remote image, then local SVG fallback */
+  background:
+    linear-gradient(180deg, rgba(11, 11, 13, 0.6) 0%, rgba(11, 11, 13, 0.95) 100%),
+    url("https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1600&q=80") no-repeat center / cover,
+    url("/assets/hero/auth-bg.svg") no-repeat center / cover;
+  display: flex;
+}
+
+/* ensure the wrapper and shell stretch full height for centering */
+.auth-page .page-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+}
+
+.auth-page .auth-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* removed duplicate block (merged above) */
+
+.auth-page .auth-box {
+  background: var(--carbon);
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 0 24px rgba(127, 61, 244, 0.25);
+  animation: fadeUp 0.6s ease;
+  position: relative;
+}
+
+.auth-page .auth-box h1 {
+  text-align: center;
+  color: var(--gold);
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tabs button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-med);
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.tabs button.active {
+  color: var(--gold);
+  border-bottom: 2px solid var(--gold);
+}
+
+form {
+  display: none;
+}
+
+form.active {
+  display: block;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  border: 1px solid #1c1c22;
+  background: var(--black);
+  color: var(--text-hi);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--violet);
+  box-shadow: 0 0 8px rgba(127, 61, 244, 0.5);
+}
+
+.checkboxes {
+  font-size: 13px;
+  color: var(--text-med);
+  margin-bottom: 12px;
+}
+
+.checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+.checkboxes input[type="checkbox"] {
+  accent-color: var(--violet);
+}
+
+.submit {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  background: var(--gold);
+  color: var(--black);
+  cursor: pointer;
+  transition: 0.25s;
+  box-shadow: 0 0 18px rgba(242, 201, 76, 0.35);
+}
+
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.extra {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-med);
+}
+
+.extra a {
+  color: var(--violet);
+  text-decoration: none;
+}
+
+.pair-ages {
+  display: none;
+  gap: 8px;
+}
+
+.pair-ages.active {
+  display: flex;
+}
+
+.age-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.age-content {
+  background: var(--carbon);
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 360px;
+  box-shadow: 0 0 24px rgba(127, 61, 244, 0.4);
+}
+
+.age-content h2 {
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.age-content p {
+  color: var(--text-med);
+  margin-bottom: 20px;
+}
+
+.age-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.age-content button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.age-yes {
+  background: var(--gold);
+  color: var(--black);
+}
+
+.age-no {
+  background: #2c2c2c;
+  color: #fff;
+}
+
+.age-content button:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

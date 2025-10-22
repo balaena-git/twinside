@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Друзья — TwinSide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+  <div id="app-content">
+    <section class="widget">
+      <h3>Мои друзья</h3>
+      <div id="friends" class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+    </section>
+    <section class="widget">
+      <h3>Заявки в друзья</h3>
+      <div id="requests" class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+    </section>
+  </div>
+
+  <script src="/app/js/app-shell.js" defer></script>
+  <script>
+    function card(u, actions){
+      const el = document.createElement('div');
+      el.className='card';
+      el.style = 'background:#141418;border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 15px rgba(127,61,244,.15)';
+      el.innerHTML = `
+        <img src="${u.avatar || '/assets/icons/user.svg'}" width="96" height="96" style="border-radius:50%;border:2px solid #7f3df4;object-fit:cover"/>
+        <h4 style="margin:0">${u.nick || '—'} ${u.premium?'👑':''}</h4>
+        <div style="color:#CFCFE2">${u.city||'Город не указан'} · ${u.gender||'—'}</div>
+      `;
+      if (actions) el.appendChild(actions);
+      return el;
+    }
+
+    async function load(){
+      const fWrap = document.getElementById('friends');
+      const rWrap = document.getElementById('requests');
+      fWrap.innerHTML = '<div class="table-message">Загрузка…</div>';
+      rWrap.innerHTML = '<div class="table-message">Загрузка…</div>';
+      try{
+        const fr = await (await fetch('/friends', { credentials:'include' })).json();
+        const rq = await (await fetch('/friends/requests', { credentials:'include' })).json();
+        fWrap.innerHTML = '';
+        rWrap.innerHTML = '';
+        (fr.friends||[]).forEach(u=>{
+          const actions = document.createElement('div');
+          actions.style='display:flex;gap:8px';
+          const prof = document.createElement('a'); prof.className='btn'; prof.href='/app/profile?id='+u.id; prof.textContent='Профиль'; actions.appendChild(prof);
+          const rm = document.createElement('button'); rm.className='btn'; rm.textContent='Удалить'; rm.onclick = ()=>remove(u.id); actions.appendChild(rm);
+          fWrap.appendChild(card(u, actions));
+        });
+        (rq.incoming||[]).forEach(u=>{
+          const actions = document.createElement('div');
+          actions.style='display:flex;gap:8px';
+          const acc = document.createElement('button'); acc.className='btn'; acc.textContent='Принять'; acc.onclick = ()=>accept(u.id); actions.appendChild(acc);
+          const rej = document.createElement('button'); rej.className='btn'; rej.textContent='Отклонить'; rej.onclick = ()=>remove(u.id); actions.appendChild(rej);
+          rWrap.appendChild(card(u, actions));
+        });
+        if (!fr.friends || fr.friends.length===0) fWrap.innerHTML='<div class="table-message">Пока нет друзей</div>';
+        if (!rq.incoming || rq.incoming.length===0) rWrap.innerHTML='<div class="table-message">Нет входящих заявок</div>';
+      }catch(e){
+        fWrap.innerHTML = '<div class="table-message">Ошибка загрузки</div>';
+        rWrap.innerHTML = '<div class="table-message">Ошибка загрузки</div>';
+      }
+    }
+
+    async function accept(id){ await fetch('/friends/'+id, { method:'POST', credentials:'include' }); load(); }
+    async function remove(id){ await fetch('/friends/'+id, { method:'DELETE', credentials:'include' }); load(); }
+
+    document.addEventListener('DOMContentLoaded', load);
+  </script>
+</body>
+</html>
+

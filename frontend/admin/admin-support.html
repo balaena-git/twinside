@@ -4,202 +4,32 @@
   <meta charset="UTF-8" />
   <title>💬 Поддержка — TwinSide Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- общий стиль админки -->
   <link rel="stylesheet" href="../assets/admin.css" />
-  <style>
-    /* ====== локальные стили страницы поддержки (минимум, остальное — в admin.css) ====== */
-    :root{
-      --bg:#0B0B0D; --panel:#141418; --ink:#fff; --muted:#CFCFE2;
-      --gold:#F2C94C; --violet:#7F3DF4; --line:rgba(255,255,255,.08);
-    }
-    body{ background:var(--bg); color:var(--ink); }
-
-    .support-layout{
-      display:grid;
-      grid-template-columns: 340px 1fr;
-      gap:18px;
-      padding:20px;
-      max-width:1400px;
-      margin:0 auto;
-      width:100%;
-    }
-    @media (max-width: 1024px){
-      .support-layout{ grid-template-columns:1fr; }
-    }
-
-    /* Sidebar (threads) */
-    .threads-panel{
-      background:var(--panel);
-      border-radius:14px;
-      box-shadow:0 0 18px rgba(127,61,244,.25);
-      display:flex;
-      flex-direction:column;
-      min-height:72vh;
-      overflow:hidden;
-    }
-    .threads-header{
-      padding:14px 14px 8px;
-      border-bottom:1px solid var(--line);
-    }
-    .search-row{
-      display:flex;gap:8px;margin-top:10px;
-    }
-    .search-row input, .search-row select{
-      flex:1;
-      background:#0f0f13;
-      border:1px solid #1f1f26;
-      color:#fff;border-radius:10px;padding:10px 12px;
-    }
-    .search-row button{ white-space:nowrap; }
-
-    .threads-list{
-      overflow:auto;
-    }
-    .thread{
-      display:grid;
-      grid-template-columns:48px 1fr auto;
-      gap:10px;
-      padding:12px 14px;
-      border-bottom:1px solid var(--line);
-      cursor:pointer;
-      transition:.20s;
-    }
-    .thread:hover{ background:rgba(127,61,244,.08); }
-    .thread.active{ background:rgba(127,61,244,.15); }
-    .thread .ava{
-      width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--violet);
-      background:#0f0f13;
-    }
-    .thread .meta h4{ margin:0; font-size:15px; color:var(--ink); }
-    .thread .meta p{ margin:3px 0 0; font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    .thread .badges{ display:flex; gap:6px; align-items:center; }
-    .badge{
-      font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:#ddd;
-    }
-    .badge.gold{ color:#0B0B0D;background:var(--gold); border:none; }
-    .badge.pin{ color:var(--gold); border-color:var(--gold); }
-    .no-threads{
-      padding:20px; text-align:center; color:#aaa;
-    }
-
-    /* Chat panel */
-    .chat-panel{
-      background:linear-gradient(160deg, rgba(255,255,255,.02), rgba(127,61,244,.06));
-      border:1px solid var(--line);
-      border-radius:14px;
-      box-shadow:0 0 22px rgba(127,61,244,.20);
-      min-height:72vh;
-      display:grid;
-      grid-template-rows:auto 1fr auto;
-      overflow:hidden;
-    }
-    .chat-header{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding:14px 16px; border-bottom:1px solid var(--line);
-      background:rgba(0,0,0,.25);
-      backdrop-filter: blur(6px);
-    }
-    .chat-title{
-      display:flex; align-items:center; gap:12px;
-    }
-    .chat-title img{
-      width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--violet);
-      background:#0f0f13;
-    }
-    .chat-title .who{ display:flex;flex-direction:column;line-height:1.15; }
-    .chat-title b{ color:var(--gold); }
-    .chat-actions{
-      display:flex; gap:8px; flex-wrap:wrap;
-    }
-
-    .chat-body{
-      display:grid; grid-template-columns: 1fr 300px; gap:16px; padding:16px;
-    }
-    @media (max-width: 1200px){
-      .chat-body{ grid-template-columns:1fr; }
-    }
-    .messages{
-      background:#0f0f13; border:1px solid #1f1f26; border-radius:12px; padding:12px;
-      overflow:auto; min-height:300px; max-height:60vh;
-    }
-    .msg{
-      display:flex; gap:10px; margin:10px 0;
-      align-items:flex-end;
-    }
-    .msg.me{ flex-direction:row-reverse; }
-    .msg .bubble{
-      max-width:68%;
-      padding:10px 12px; border-radius:12px;
-      background:#1b1b22; color:#fff; border:1px solid #242432;
-    }
-    .msg.me .bubble{ background:#251b38; border-color:#3a2b58; }
-    .msg time{ font-size:11px; color:#aaa; margin:0 6px; }
-    .bubble img{
-      max-width:260px; max-height:260px; border-radius:10px; border:1px solid #2a2a36; display:block;
-      cursor:pointer;
-    }
-    .bubble .file{
-      display:flex; align-items:center; gap:8px; padding:8px; border:1px dashed #38384c; border-radius:10px;
-      font-size:13px; color:#ddd;
-    }
-    .bubble .file a{ color:#fff; text-decoration:none; }
-    .typing{ color:#CFCFE2; font-size:12px; margin:6px 2px; }
-
-    .info-panel{
-      background:#0f0f13; border:1px solid #1f1f26; border-radius:12px; padding:12px; min-height:200px;
-    }
-    .info-row{ display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px dashed #242432; }
-    .info-row:last-child{ border-bottom:none; }
-    .info-row span{ color:#CFCFE2; font-size:13px; }
-    .info-row b{ color:#fff; }
-
-    .quick-replies{
-      display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;
-    }
-    .quick-replies button{ font-size:12px; }
-
-    .chat-input{
-      display:grid; grid-template-columns:auto 1fr auto; gap:10px; padding:12px; border-top:1px solid var(--line);
-      background:rgba(0,0,0,.3); backdrop-filter: blur(6px);
-    }
-    .chat-input textarea{
-      width:100%; min-height:44px; max-height:120px; resize:vertical;
-      background:#0f0f13; color:#fff; border:1px solid #1f1f26; border-radius:10px; padding:10px 12px;
-    }
-    .icon-btn{
-      background:#0f0f13; border:1px solid #1f1f26; color:#fff; border-radius:10px; padding:10px 12px; cursor:pointer;
-    }
-
-    /* модалка для фото */
-    .modal{
-      position:fixed; inset:0; background:rgba(0,0,0,.86); display:none; align-items:center; justify-content:center; z-index:1000;
-    }
-    .modal img{ max-width:92%; max-height:92%; border:3px solid var(--violet); border-radius:10px; box-shadow:0 0 40px rgba(127,61,244,.5); }
-  </style>
+  <link rel="stylesheet" href="../assets/admin-pages.css" />
 </head>
 <body>
   <header class="admin-header">
     <h1>💬 Поддержка</h1>
-    <nav class="admin-nav">
+    <nav id="nav" class="admin-nav is-hidden">
       <a href="/admin/admin.html">🏠 Дашборд</a>
       <a href="/admin/admin-pending.html">Анкеты</a>
       <a href="/admin/admin-users.html">Пользователи</a>
       <a href="/admin/admin-finance.html">Финансы</a>
       <a href="/admin/admin-promos.html">Промокоды</a>
-      <a class="active" href="/admin/admin-support.html">Поддержка</a>
+      <a href="/admin/admin-support.html">Поддержка</a>
+      <a href="/admin/admin-complaints.html">Жалобы</a>
       <a href="/admin/admin-ads.html">Реклама</a>
     </nav>
-    <button id="logout" class="btn violet">Выйти</button>
+    <button id="logout" class="btn violet is-hidden">Выйти</button>
   </header>
 
-  <main>
+  <main class="is-hidden">
     <div class="support-layout">
-      <!-- LEFT: threads -->
       <aside class="threads-panel">
         <div class="threads-header">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0;color:var(--gold);">Диалоги</h3>
-            <select id="statusFilter" style="width:140px;">
+          <div class="threads-header__top">
+            <h3>Диалоги</h3>
+            <select id="statusFilter">
               <option value="active">Активные</option>
               <option value="unread">Непрочитанные</option>
               <option value="resolved">Решённые</option>
@@ -216,14 +46,13 @@
         </div>
       </aside>
 
-      <!-- RIGHT: chat -->
       <section class="chat-panel">
         <div class="chat-header">
           <div class="chat-title">
-            
+            <img id="chatAva" class="chat-avatar" src="/assets/icons/user.svg" alt="avatar" />
             <div class="who">
               <b id="chatNick">Выберите диалог</b>
-              <span id="chatMeta" style="color:var(--muted);font-size:12px;">—</span>
+              <span id="chatMeta" class="chat-meta">—</span>
             </div>
           </div>
           <div class="chat-actions">
@@ -235,11 +64,11 @@
 
         <div class="chat-body">
           <div class="messages" id="messages">
-            <div class="no-threads" style="padding:16px;">Выберите диалог слева, чтобы начать</div>
+            <div class="no-threads">Выберите диалог слева, чтобы начать</div>
           </div>
 
           <aside class="info-panel">
-            <h4 style="margin:6px 0 10px;color:var(--gold);">Информация</h4>
+            <h4>Информация</h4>
             <div class="info-row"><span>ID</span> <b id="u_id">—</b></div>
             <div class="info-row"><span>Ник</span> <b id="u_nick">—</b></div>
             <div class="info-row"><span>Email</span> <b id="u_email">—</b></div>
@@ -248,7 +77,7 @@
             <div class="info-row"><span>Город</span> <b id="u_city">—</b></div>
             <div class="info-row"><span>Премиум</span> <b id="u_premium">—</b></div>
 
-            <div class="quick-replies" id="quickReplies" style="margin-top:12px;">
+            <div class="quick-replies" id="quickReplies">
               <button class="btn">Здравствуйте! Чем могу помочь?</button>
               <button class="btn">Пожалуйста, уточните ваш вопрос.</button>
               <button class="btn">Мы проверим и вернёмся с ответом.</button>
@@ -258,7 +87,7 @@
 
         <div class="chat-input">
           <label class="icon-btn" for="filePicker">📎</label>
-          <input id="filePicker" type="file" style="display:none" />
+          <input id="filePicker" type="file" class="hidden-input" />
           <textarea id="msgInput" placeholder="Напишите ответ..."></textarea>
           <button class="btn gold" id="sendBtn">Отправить</button>
         </div>
@@ -268,301 +97,11 @@
 
   <footer>© TwinSide Admin 2025</footer>
 
-  <!-- modal preview -->
-  <div id="imgModal" class="modal" onclick="this.style.display='none'">
+  <div id="imgModal" class="modal-lightbox">
     <img id="imgModalPic" src="" alt="preview" />
   </div>
 
-  <script>
-    const API = "http://localhost:3000/api/admin/support"; // 👈 Поменяй при необходимости
-    const threadsBox = document.getElementById("threads");
-    const searchBox = document.getElementById("searchBox");
-    const statusFilter = document.getElementById("statusFilter");
-    const messagesBox = document.getElementById("messages");
-    const msgInput = document.getElementById("msgInput");
-    const sendBtn = document.getElementById("sendBtn");
-    const filePicker = document.getElementById("filePicker");
-
-    const chatNick = document.getElementById("chatNick");
-    const chatMeta = document.getElementById("chatMeta");
-    const chatAva  = document.getElementById("chatAva");
-
-    const u_id = document.getElementById("u_id");
-    const u_nick = document.getElementById("u_nick");
-    const u_email = document.getElementById("u_email");
-    const u_status = document.getElementById("u_status");
-    const u_balance = document.getElementById("u_balance");
-    const u_city = document.getElementById("u_city");
-    const u_premium = document.getElementById("u_premium");
-
-    const pinBtn = document.getElementById("pinBtn");
-    const resolveBtn = document.getElementById("resolveBtn");
-    const openUserBtn = document.getElementById("openUserBtn");
-
-    const imgModal = document.getElementById("imgModal");
-    const imgModalPic = document.getElementById("imgModalPic");
-
-    let selectedThread = null;
-    let pollTimer = null;
-
-    // ===== HEADER =====
-    document.getElementById("logout").onclick = async () => {
-      await fetch("/api/admin/logout", { method:"POST", credentials:"include" });
-      location.href = "/admin/admin.html";
-    };
-
-    // ===== Threads load =====
-    async function loadThreads(){
-      threadsBox.innerHTML = `<div class="no-threads">Загрузка диалогов...</div>`;
-      try{
-        // API: список диалогов
-        const url = `${API}/threads?status=${encodeURIComponent(statusFilter.value)}&search=${encodeURIComponent(searchBox.value)}&limit=50`;
-        const res = await fetch(url, { credentials: "include" });
-        const data = await res.json();
-        if(!data.ok || !data.threads || !data.threads.length){
-          threadsBox.innerHTML = `<div class="no-threads">Диалогов не найдено</div>`;
-          return;
-        }
-        threadsBox.innerHTML = "";
-        data.threads.forEach(t => {
-          const wrap = document.createElement("div");
-          wrap.className = "thread";
-          if(selectedThread && selectedThread.id === t.id) wrap.classList.add("active");
-
-          const ava = document.createElement("img");
-          ava.className = "ava";
-          ava.src = t.avatar_path ? fixUploadUrl(t.avatar_path) : "/assets/icons/user.svg";
-          ava.alt = "avatar";
-
-          const meta = document.createElement("div");
-          meta.className = "meta";
-          const name = document.createElement("h4");
-          name.textContent = t.nick || `user#${t.user_id}`;
-          const last = document.createElement("p");
-          last.textContent = t.last_message || "Нет сообщений";
-          meta.appendChild(name); meta.appendChild(last);
-
-          const badges = document.createElement("div");
-          badges.className = "badges";
-          if(t.unread_count > 0){
-            const b = document.createElement("span"); b.className = "badge gold";
-            b.textContent = t.unread_count;
-            badges.appendChild(b);
-          }
-          if(t.pinned){
-            const b = document.createElement("span"); b.className = "badge pin";
-            b.textContent = "PIN";
-            badges.appendChild(b);
-          }
-          if(t.status === "resolved"){
-            const b = document.createElement("span"); b.className = "badge";
-            b.textContent = "РЕШЕНО";
-            badges.appendChild(b);
-          }
-
-          wrap.appendChild(ava);
-          wrap.appendChild(meta);
-          wrap.appendChild(badges);
-
-          wrap.onclick = () => selectThread(t);
-          threadsBox.appendChild(wrap);
-        });
-      }catch(e){
-        threadsBox.innerHTML = `<div class="no-threads" style="color:#f77">Ошибка загрузки: ${e.message}</div>`;
-      }
-    }
-
-    function fixUploadUrl(path){
-      // принимает как "/uploads/..." так и "avatars/....jpg"
-      if(!path) return "";
-      if(path.startsWith("/uploads/")) return path;
-      return "/uploads/" + path.replace(/^\/+/,'');
-    }
-
-    async function selectThread(t){
-      selectedThread = t;
-      // хедер
-      chatNick.textContent = t.nick || `user#${t.user_id}`;
-      chatMeta.textContent = `${t.email || "—"} • ${t.city || "—"} • ${t.gender || "—"}`;
-      chatAva.src = t.avatar_path ? fixUploadUrl(t.avatar_path) : "/assets/icons/user.svg";
-
-      // инфопанель
-      u_id.textContent = t.user_id || "—";
-      u_nick.textContent = t.nick || "—";
-      u_email.textContent = t.email || "—";
-      u_status.textContent = t.user_status || "—";
-      u_balance.textContent = (typeof t.balance === "number" ? t.balance : "—");
-      u_city.textContent = t.city || "—";
-      u_premium.textContent = t.premium ? "Да" : "Нет";
-
-      // кнопки состояния
-      pinBtn.dataset.pinned = t.pinned ? "1" : "0";
-      pinBtn.textContent = t.pinned ? "📌 Открепить" : "📌 Закрепить";
-      resolveBtn.dataset.resolved = (t.status === "resolved") ? "1" : "0";
-      resolveBtn.textContent = (t.status === "resolved") ? "↩️ Снова открыть" : "✅ Решено";
-
-      await loadMessages();
-      startPolling();
-      // помечаем активный в списке
-      [...document.querySelectorAll(".thread")].forEach(el=>el.classList.remove("active"));
-      const idx = [...threadsBox.children].findIndex(el=> (el.querySelector('h4')?.textContent||"") === (t.nick||`user#${t.user_id}`));
-      if(threadsBox.children[idx]) threadsBox.children[idx].classList.add("active");
-    }
-
-    async function loadMessages(){
-      messagesBox.innerHTML = `<div class="no-threads" style="padding:16px;">Загрузка...</div>`;
-      if(!selectedThread) return;
-      try{
-        // API: сообщения треда
-        const res = await fetch(`${API}/thread/${selectedThread.id}/messages`, { credentials:"include" });
-        const data = await res.json();
-        if(!data.ok || !data.messages) {
-          messagesBox.innerHTML = `<div class="no-threads" style="padding:16px;">Сообщений нет</div>`;
-          return;
-        }
-        messagesBox.innerHTML = "";
-        data.messages.forEach(m => {
-          const row = document.createElement("div");
-          row.className = "msg" + (m.sender === "admin" ? " me" : "");
-          const bubble = document.createElement("div");
-          bubble.className = "bubble";
-
-          if(m.text){
-            const p = document.createElement("div");
-            p.textContent = m.text;
-            bubble.appendChild(p);
-          }
-          if(m.image_url){
-            const img = document.createElement("img");
-            img.src = fixUploadUrl(m.image_url);
-            img.alt = "image";
-            img.onclick = ()=>openImage(img.src);
-            bubble.appendChild(img);
-          }
-          if(m.file_url && !m.image_url){
-            const file = document.createElement("div");
-            file.className = "file";
-            file.innerHTML = `📎 <a href="${fixUploadUrl(m.file_url)}" target="_blank">${m.file_name || 'Файл'}</a>`;
-            bubble.appendChild(file);
-          }
-          const tm = document.createElement("time");
-          tm.textContent = new Date(m.created_at).toLocaleString('ru-RU');
-          row.appendChild(bubble);
-          row.appendChild(tm);
-          messagesBox.appendChild(row);
-        });
-        messagesBox.scrollTop = messagesBox.scrollHeight;
-      }catch(e){
-        messagesBox.innerHTML = `<div class="no-threads" style="color:#f77;padding:16px;">Ошибка: ${e.message}</div>`;
-      }
-    }
-
-    function startPolling(){
-      if(pollTimer) clearInterval(pollTimer);
-      pollTimer = setInterval(loadMessages, 5000);
-    }
-
-    function stopPolling(){
-      if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
-    }
-
-    function openImage(src){
-      imgModalPic.src = src;
-      imgModal.style.display = "flex";
-    }
-
-    // Быстрые ответы
-    document.getElementById("quickReplies").addEventListener("click", (e)=>{
-      if(e.target.tagName === "BUTTON"){
-        msgInput.value = e.target.textContent;
-        msgInput.focus();
-      }
-    });
-
-    // Отправка текста
-    sendBtn.onclick = async ()=>{
-      if(!selectedThread) return;
-      const text = msgInput.value.trim();
-      const hasFile = filePicker.files.length > 0;
-
-      if(!text && !hasFile) return;
-
-      try{
-        if(hasFile){
-          const form = new FormData();
-          if(text) form.append("text", text);
-          form.append("file", filePicker.files[0]);
-          // API: отправка файла/изображения
-          const res = await fetch(`${API}/thread/${selectedThread.id}/upload`, {
-            method:"POST", credentials:"include", body:form
-          });
-          const data = await res.json();
-          if(!data.ok) throw new Error(data.error||"upload_failed");
-          filePicker.value = "";
-        }
-        if(text && !hasFile){
-          // API: отправка текстового сообщения
-          const res = await fetch(`${API}/thread/${selectedThread.id}/message`, {
-            method:"POST", headers:{"Content-Type":"application/json"},
-            credentials:"include",
-            body: JSON.stringify({ text })
-          });
-          const data = await res.json();
-          if(!data.ok) throw new Error(data.error||"send_failed");
-        }
-        msgInput.value = "";
-        await loadMessages();
-      }catch(e){
-        alert("Ошибка отправки: "+e.message);
-      }
-    };
-
-    // Пин / Решено
-    pinBtn.onclick = async ()=>{
-      if(!selectedThread) return;
-      const next = pinBtn.dataset.pinned === "1" ? 0 : 1;
-      // API: изменить свойства треда
-      const res = await fetch(`${API}/thread/${selectedThread.id}`, {
-        method:"PATCH", headers:{"Content-Type":"application/json"},
-        credentials:"include",
-        body: JSON.stringify({ pinned: !!next })
-      });
-      const data = await res.json();
-      if(data.ok){
-        pinBtn.dataset.pinned = String(next);
-        pinBtn.textContent = next ? "📌 Открепить" : "📌 Закрепить";
-        loadThreads();
-      }
-    };
-    resolveBtn.onclick = async ()=>{
-      if(!selectedThread) return;
-      const next = resolveBtn.dataset.resolved === "1" ? "active" : "resolved";
-      const res = await fetch(`${API}/thread/${selectedThread.id}`, {
-        method:"PATCH", headers:{"Content-Type":"application/json"},
-        credentials:"include",
-        body: JSON.stringify({ status: next })
-      });
-      const data = await res.json();
-      if(data.ok){
-        resolveBtn.dataset.resolved = next === "resolved" ? "1" : "0";
-        resolveBtn.textContent = next === "resolved" ? "↩️ Снова открыть" : "✅ Решено";
-        loadThreads();
-      }
-    };
-
-    // Открыть профиль пользователя (новая вкладка админ-пользователи с поиском)
-    openUserBtn.onclick = ()=>{
-      if(!selectedThread) return;
-      const q = encodeURIComponent(selectedThread.nick || selectedThread.email || selectedThread.user_id);
-      window.open(`/admin/admin-users.html?search=${q}`, "_blank");
-    };
-
-    // Фильтры/поиск
-    document.getElementById("searchBtn").onclick = ()=>loadThreads();
-    statusFilter.onchange = ()=>loadThreads();
-
-    // Инициализация
-    loadThreads();
-  </script>
+  <script src="./js/admin-common.js" defer></script>
+  <script src="./js/support.js" defer></script>
 </body>
 </html>

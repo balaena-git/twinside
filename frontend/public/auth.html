@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>TwinSide — Вход / Регистрация</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
+  <link rel="mask-icon" href="/assets/icons/logo.svg" color="#7F3DF4">
+  <meta name="theme-color" content="#0B0B0D">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://twinside.com/">
+  <meta property="og:title" content="TwinSide — закрытая соцсеть для взрослых">
+  <meta property="og:description" content="Приватное комьюнити, где стиль, страсть и доверие соединяются. Только 18+, только реальные люди.">
+  <meta property="og:image" content="https://twinside.com/assets/preview.jpg">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://twinside.com/">
+  <meta name="twitter:title" content="TwinSide — закрытая соцсеть для взрослых">
+  <meta name="twitter:description" content="Приватная сеть, где встречаются стиль, доверие и страсть. Только 18+.">
+  <meta name="twitter:image" content="https://twinside.com/assets/preview.jpg">
+
+  <link rel="stylesheet" href="/assets/public.css">
+  <link rel="stylesheet" href="/assets/auth.css">
+</head>
+
+<body class="auth-page" data-no-chrome="true">
+  <div class="page-wrapper">
+    <main class="auth-shell">
+      <div class="auth-box">
+        <div class="age-modal" id="ageModal">
+          <div class="age-content">
+            <h2>Вам есть 18 лет?</h2>
+            <p>Платформа TwinSide предназначена только для совершеннолетних пользователей.</p>
+            <div class="age-actions">
+              <button class="age-yes" id="yesBtn">Да, мне 18+</button>
+              <button class="age-no" id="noBtn">Нет</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-body is-hidden" id="authBox">
+          <h1>👥 TwinSide</h1>
+
+          <div class="tabs">
+            <button id="tab-login" class="active">Вход</button>
+            <button id="tab-register">Регистрация</button>
+          </div>
+
+          <form id="login-form" class="active">
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Пароль" required>
+            <button type="submit" class="submit">Войти</button>
+            <div class="extra"><a href="/public/reset-password">Забыли пароль?</a></div>
+          </form>
+
+          <form id="register-form">
+            <input type="text" id="nick" placeholder="Ник" required>
+            <input type="email" id="reg-email" placeholder="Email" required>
+            <input type="password" id="reg-password" placeholder="Пароль" required>
+            <select id="gender" required>
+              <option value="man">Мужчина</option>
+              <option value="woman">Женщина</option>
+              <option value="pair">Пара</option>
+              <option value="trans_woman">Транс Женщина</option>
+              <option value="trans_man">Транс Мужчина</option>
+            </select>
+
+            <input type="number" id="age" placeholder="Возраст" min="18" max="99">
+
+            <div class="pair-ages" id="pair-ages">
+              <input type="number" id="male_age" placeholder="Возраст мужчины" min="18" max="99">
+              <input type="number" id="female_age" placeholder="Возраст женщины" min="18" max="99">
+            </div>
+
+            <input list="city-list" id="city" placeholder="Город" required>
+            <datalist id="city-list"></datalist>
+
+            <div class="checkboxes">
+              <label><input type="checkbox" id="agree18"> Мне есть 18 лет</label>
+              <label><input type="checkbox" id="agreeRules"> Я согласен с правилами сайта</label>
+            </div>
+
+            <button type="submit" class="submit" id="registerBtn" disabled>Создать аккаунт</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/public-app.js" defer></script>
+  <script src="/js/auth.js" defer></script>
+</body>
+</html>

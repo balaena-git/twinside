@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Профиль — TwinSide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+  <div id="app-content">
+    <!-- Top combined block: left photo+premium+gifts+album, right info -->
+    <section class="profile-top">
+      <div class="profile-photo-card">
+        <img id="p-ava" class="profile-avatar" src="/assets/icons/user.svg" alt="avatar"/>
+        <div id="premium-label" class="badge" style="margin-top:12px; display:inline-block">—</div>
+        <h4>Подарки</h4>
+        <div class="gift-row" id="gifts-row"></div>
+        <h4>Альбом</h4>
+        <div class="thumbs mini" id="photos-preview"></div>
+        <a id="photos-link" href="/app/photos" class="link" style="display:inline-block; margin-top:8px">Все фото</a>
+      </div>
+      <div class="profile-info-card">
+        <h1 id="p-nick" class="profile-name">—</h1>
+        <div id="p-meta" class="profile-meta">—</div>
+        <div id="online" class="profile-meta">—</div>
+        <div class="badges" id="p-badges"></div>
+        <div class="counters">
+          <div class="counter"><b id="c-friends">0</b><span>Друзья</span></div>
+          <div class="counter"><b id="c-photos">0</b><span>Фото</span></div>
+          <div class="counter"><b id="c-posts">0</b><span>Посты</span></div>
+        </div>
+
+        <section class="profile-section" style="margin-top:12px">
+          <h3>О себе</h3>
+          <p id="p-about">—</p>
+          <div id="edit-row" style="margin-top:8px; display:none">
+            <textarea id="about-edit" placeholder="О себе" maxlength="300" style="width:100%; min-height:80px; background:#0b0b0d; color:#fff; border:1px solid #1c1c22; border-radius:8px; padding:8px;"></textarea>
+            <div class="row">
+              <input id="interests-edit" placeholder="Интересы через запятую" style="flex:1; background:#0b0b0d; color:#fff; border:1px solid #1c1c22; border-radius:8px; padding:8px" />
+              <button id="save-info" class="btn">Сохранить</button>
+              <button id="cancel-info" class="btn ghost">Отмена</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="profile-section">
+          <h3>Интересы</h3>
+          <div id="p-interests" class="chips"></div>
+          <div style="margin-top:8px" id="who-looking"></div>
+        </section>
+
+        <div id="p-actions" style="margin-top:10px;display:flex;gap:8px"></div>
+      </div>
+    </section>
+
+    <!-- Bottom: left friends, right composer -->
+    <section class="profile-bottom" id="profile-bottom">
+      <div class="profile-friends-card">
+        <div class="header">
+          <h3>Друзья</h3>
+          <a href="/app/friends">Все</a>
+        </div>
+        <div class="friends-row" id="friends-preview"></div>
+      </div>
+      <div class="profile-composer-card" id="composer-card" style="display:none">
+        <h3>Поделиться</h3>
+        <div class="composer-tabs">
+          <button class="active" data-mode="post">Пост</button>
+          <button data-mode="photo">Фото</button>
+          <button data-mode="poll">Опрос</button>
+        </div>
+        <div class="composer-body">
+          <textarea id="post-text" placeholder="Что у вас нового?"></textarea>
+          <div class="composer-upload" id="composer-upload">
+            <input id="post-photo" type="file" accept="image/*" multiple />
+            <span class="composer-description">Можно выбрать до 10 фотографий</span>
+          </div>
+          <div class="composer-poll" id="composer-poll" style="display:none">
+            <input type="text" id="poll-question" placeholder="Вопрос" style="width:100%; background:#0b0b0d; color:#fff; border:1px solid #1c1c22; border-radius:8px; padding:8px; margin-bottom:8px;" />
+            <textarea id="poll-options" placeholder="Варианты ответа, каждый с новой строки" style="width:100%; min-height:80px; background:#0b0b0d; color:#fff; border:1px solid #1c1c22; border-radius:8px; padding:8px;"></textarea>
+            <label style="display:flex; align-items:center; gap:6px; margin-top:6px; font-size:13px; color:#cfcfe2;">
+              <input type="checkbox" id="poll-anon" /> Анонимное голосование
+            </label>
+          </div>
+          <div class="composer-actions">
+            <button class="btn ghost" id="composer-cancel" type="button">Отмена</button>
+            <button class="btn" id="composer-submit" type="button">Опубликовать</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+  </div>
+
+  <script src="/app/js/app-shell.js" defer></script>
+  <link rel="stylesheet" href="/assets/app.css?v=profile3" />
+  <script>
+    async function loadProfile(){
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get('id');
+      try {
+        if (userId) {
+          const r = await fetch(`/users/${userId}/profile`);
+          const data = await r.json();
+          if (!data.ok) throw new Error(data.error||'not_found');
+          render(data.profile, false);
+          loadFriendsPreview(parseInt(userId,10), false);
+          loadPhotosPreview(parseInt(userId,10));
+        } else {
+          const r = await fetch('/me/overview', { credentials:'include' });
+          const me = await r.json();
+          if (!me.ok) { window.location.href='/public/auth'; return; }
+          render(me.profile, true);
+          loadFriendsPreview(me.profile.id, true);
+          loadPhotosPreview(me.profile.id);
+        }
+      } catch(e){
+        document.getElementById('app-content').innerHTML = `<div class=\"table-message\">Ошибка: ${e.message}</div>`;
+      }
+    }
+
+    function render(p, isMe){
+      if (p.avatar) document.getElementById('p-ava').src = p.avatar;
+      const name = `${p.nick||'—'} ${p.premium?'👑':''}`;
+      document.getElementById('p-nick').textContent = name;
+      const agePart = p.age ? ` · ${p.age}` : '';
+      document.getElementById('p-meta').textContent = `${p.city||'Город не указан'} · ${p.gender||'—'}${agePart}`;
+      // online/offline
+      const onlineEl = document.getElementById('online');
+      const last = p.last_active ? new Date(p.last_active) : null;
+      const online = last ? (Date.now() - last.getTime() < 5*60*1000) : false;
+      onlineEl.textContent = online ? 'Онлайн' : (last ? `Был(а) в сети: ${last.toLocaleString('ru-RU')}` : 'Нет данных активности');
+      document.getElementById('p-about').textContent = p.about || '—';
+      const interestsWrap = document.getElementById('p-interests');
+      interestsWrap.innerHTML = '';
+      const interests = (p.interests||'').split(',').map(s=>s.trim()).filter(Boolean);
+      if (interests.length===0) interestsWrap.innerHTML = '<span class="chip">—</span>';
+      interests.forEach(tag=>{ const t=document.createElement('span'); t.className='chip'; t.textContent=tag; interestsWrap.appendChild(t); });
+
+      if (p.counters){
+        document.getElementById('c-friends').textContent = p.counters.friends||0;
+        document.getElementById('c-photos').textContent = p.counters.photos||0;
+        document.getElementById('c-posts').textContent = p.counters.posts||0;
+      }
+
+      const whoWrap = document.getElementById('who-looking');
+      const who = p.gender==='man'?'Он': p.gender==='woman'?'Она': p.gender==='pair'?'Пара': '—';
+      const looking = (p.looking_for||'').split(',').map(s=>s.trim()).filter(Boolean).join(', ');
+      whoWrap.textContent = `${who} · Ищет: ${looking||'—'}`;
+
+      const actions = document.getElementById('p-actions');
+      actions.innerHTML = '';
+      const composerCard = document.getElementById('composer-card');
+      if (composerCard) composerCard.style.display = isMe ? 'block' : 'none';
+      const bottomSection = document.getElementById('profile-bottom');
+      if (bottomSection) bottomSection.classList.toggle('single', !isMe);
+      if (isMe) {
+        const a2 = document.createElement('button'); a2.className='btn'; a2.textContent='Редактировать'; a2.onclick=enableEdit; actions.appendChild(a2);
+        const a1 = document.createElement('a'); a1.className='btn ghost'; a1.href='/app/wallet'; a1.textContent='Кошелёк'; actions.appendChild(a1);
+      } else {
+        const m = document.createElement('button'); m.className='btn'; m.textContent='Написать'; actions.appendChild(m);
+        const f = document.createElement('button'); f.className='btn'; f.textContent='В друзья'; f.addEventListener('click', ()=>friend(p.id)); actions.appendChild(f);
+        const r = document.createElement('button'); r.className='btn ghost'; r.textContent='Пожаловаться'; actions.appendChild(r);
+      }
+
+      // premium label
+      const prem = document.getElementById('premium-label');
+      const prefLabel = p.premium ? 'Премиум пользователь' : 'Обычный пользователь';
+      prem.textContent = prefLabel;
+      prem.className = `premium-badge ${p.premium ? 'premium' : 'basic'}`;
+
+      const giftsRow = document.getElementById('gifts-row');
+      if (giftsRow) {
+        giftsRow.innerHTML = '';
+        const empty = document.createElement('span');
+        empty.className = 'gift empty';
+        empty.textContent = 'Подарков пока нет';
+        giftsRow.appendChild(empty);
+      }
+
+      const photosLink = document.getElementById('photos-link');
+      if (photosLink) photosLink.textContent = `Все фото (${p.counters?.photos ?? 0})`;
+    }
+
+    async function friend(id){
+      try {
+        const res = await fetch(`/friends/${id}`, { method:'POST', credentials:'include' });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error||'server_error');
+        alert(data.accepted ? 'Заявка принята' : 'Заявка отправлена');
+      } catch(e){ alert('Ошибка: '+e.message); }
+    }
+
+    async function loadFriendsPreview(userId, isMe){
+      const wrap = document.getElementById('friends-preview');
+      wrap.innerHTML = '';
+      try{
+        if (isMe){
+          const fr = await (await fetch('/friends', { credentials:'include' })).json();
+          (fr.friends||[]).slice(0,6).forEach(u=>{
+            const a=document.createElement('a'); a.href='/app/profile?id='+u.id; a.title=u.nick||'';
+            const img=document.createElement('img'); img.src=u.avatar||'/assets/icons/user.svg'; a.appendChild(img); wrap.appendChild(a);
+          });
+        } else {
+          const pr = await (await fetch(`/users/${userId}/friends-preview`)).json();
+          (pr.friends||[]).slice(0,6).forEach(u=>{ const a=document.createElement('a'); a.href='/app/profile?id='+u.id; const img=document.createElement('img'); img.src=u.avatar||'/assets/icons/user.svg'; a.appendChild(img); wrap.appendChild(a); });
+        }
+      }catch{}
+      if (!wrap.children.length) wrap.innerHTML = '<div class="thumbs-empty">Нет друзей</div>';
+    }
+
+    async function loadPhotosPreview(userId){
+      const wrap = document.getElementById('photos-preview');
+      wrap.innerHTML='';
+      try{
+        const res = await (await fetch(`/users/${userId}/photos?limit=6`)).json();
+        if (res.ok){
+          if (!res.photos.length) wrap.innerHTML='<div class="thumbs-empty">Нет фотографий</div>';
+          res.photos.slice(0,6).forEach(p=>{ const img=document.createElement('img'); img.src=p.path; img.alt="photo"; img.addEventListener('click', ()=>openLightbox(p.path)); wrap.appendChild(img); });
+        } else {
+          wrap.innerHTML='<div class="thumbs-empty">Нет фотографий</div>';
+        }
+      }catch{ wrap.innerHTML='<div class="thumbs-empty">Нет фотографий</div>'; }
+      const link = document.getElementById('photos-link');
+      link.href = '/app/photos?id='+userId;
+    }
+
+    function enableEdit(){
+      const box = document.getElementById('edit-row');
+      box.style.display='block';
+      document.getElementById('about-edit').value = document.getElementById('p-about').textContent;
+      document.getElementById('interests-edit').value = (Array.from(document.querySelectorAll('#p-interests .chip')).map(el=>el.textContent).join(', '));
+    }
+
+    async function saveInfo(){
+      const about = document.getElementById('about-edit').value;
+      const interests = document.getElementById('interests-edit').value;
+      try{
+        const res = await fetch('/profile/me/info', { method:'PATCH', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ about, interests }) });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error||'server_error');
+        // refresh view
+        document.getElementById('p-about').textContent = data.about||'—';
+        const wrap=document.getElementById('p-interests'); wrap.innerHTML='';
+        (data.interests||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(tag=>{ const t=document.createElement('span'); t.className='chip'; t.textContent=tag; wrap.appendChild(t); });
+        document.getElementById('edit-row').style.display='none';
+      }catch(e){ alert('Ошибка сохранения: '+e.message); }
+    }
+
+    function initComposer(){
+      const card = document.getElementById('composer-card');
+      if (!card) return;
+      const tabs = card.querySelectorAll('.composer-tabs button');
+      const uploadBlock = card.querySelector('#composer-upload');
+      const pollBlock = card.querySelector('#composer-poll');
+      const textarea = card.querySelector('#post-text');
+      const photoInput = card.querySelector('#post-photo');
+      const pollQuestion = card.querySelector('#poll-question');
+      const pollOptions = card.querySelector('#poll-options');
+      const pollAnon = card.querySelector('#poll-anon');
+      const cancelBtn = card.querySelector('#composer-cancel');
+      const submitBtn = card.querySelector('#composer-submit');
+
+      const setMode = (mode) => {
+        tabs.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+        if (mode === 'post') {
+          uploadBlock.style.display = 'none';
+          pollBlock.style.display = 'none';
+        } else if (mode === 'photo') {
+          uploadBlock.style.display = 'flex';
+          pollBlock.style.display = 'none';
+        } else if (mode === 'poll') {
+          uploadBlock.style.display = 'none';
+          pollBlock.style.display = 'block';
+        }
+      };
+
+      tabs.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+      cancelBtn.addEventListener('click', () => {
+        textarea.value = '';
+        photoInput.value = '';
+        pollQuestion.value = '';
+        pollOptions.value = '';
+        pollAnon.checked = false;
+        setMode('post');
+      });
+      submitBtn.addEventListener('click', () => {
+        alert('Публикация появится в следующих обновлениях.');
+      });
+      setMode('post');
+    }
+
+    // Lightbox simple
+    function openLightbox(src){ const lb=document.getElementById('lightbox'); const im=lb.querySelector('img'); im.src=src; lb.classList.add('open'); }
+    function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      loadProfile();
+      initComposer();
+      document.getElementById('save-info').addEventListener('click', saveInfo);
+      document.getElementById('cancel-info').addEventListener('click', ()=>{ document.getElementById('edit-row').style.display='none'; });
+      document.body.addEventListener('click', (e)=>{
+        const ava = e.target.closest('#p-ava'); if (ava && ava.src) { openLightbox(ava.src); }
+        const thumb = e.target.closest('#photos-preview img'); if (thumb) { openLightbox(thumb.src); }
+        if (e.target.closest('.lightbox .close')) closeLightbox();
+        if (e.target.classList.contains('lightbox')) closeLightbox();
+      });
+    });
+  </script>
+  <div id="lightbox" class="lightbox"><span class="close">✕</span><img src="" alt="preview"/></div>
+</body>
+</html>

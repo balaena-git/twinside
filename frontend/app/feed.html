@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Новости — TwinSide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+  <div id="app-content">
+    <section class="widget">
+      <h3>Лента</h3>
+      <div class="filters" style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="city" placeholder="Город" style="background:#141418;color:#fff;border:none;border-radius:8px;padding:8px 10px"/>
+        <select id="gender" style="background:#141418;color:#fff;border:none;border-radius:8px;padding:8px 10px">
+          <option value="">Пол — любой</option>
+          <option value="woman">Женщина</option>
+          <option value="man">Мужчина</option>
+          <option value="pair">Пара</option>
+          <option value="trans_woman">Транс‑женщина</option>
+          <option value="trans_man">Транс‑мужчина</option>
+        </select>
+        <button id="apply" class="btn">Найти</button>
+      </div>
+      <div id="feed" class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+      <div id="pager" class="pagination"></div>
+    </section>
+  </div>
+
+  <script src="/app/js/app-shell.js" defer></script>
+  <script src="/js/public-app.js" defer></script>
+  <script src="/js/ads-public.js" defer></script>
+  <script src="/js/feed.js" defer></script>
+</body>
+</html>
+

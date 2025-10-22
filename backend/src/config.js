@@ -2,7 +2,10 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -20,9 +23,8 @@ if (!SESSION_SECRET) {
 
 const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || NODE_ENV === 'production';
 const SAME_SITE = COOKIE_SECURE ? 'none' : 'lax';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const BACKEND_ROOT = path.join(__dirname, '..');
 const UPLOADS_ROOT = path.join(BACKEND_ROOT, 'uploads');
 
@@ -34,6 +36,7 @@ export {
   SESSION_SECRET,
   COOKIE_SECURE,
   SAME_SITE,
+  CORS_ORIGIN,
   BACKEND_ROOT,
   UPLOADS_ROOT,
 };

@@ -44,19 +44,56 @@ CREATE TABLE IF NOT EXISTS complaints (
 
 -- Промокоды
 CREATE TABLE IF NOT EXISTS promos (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  code        TEXT UNIQUE NOT NULL,
-  value       INTEGER NOT NULL,           -- сколько секскоинов даёт
-  active      INTEGER NOT NULL DEFAULT 1, -- 1 — активен
-  created_at  TEXT NOT NULL
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  code             TEXT UNIQUE NOT NULL,
+  value            INTEGER NOT NULL,
+  active           INTEGER NOT NULL DEFAULT 1,
+  max_redemptions  INTEGER,
+  per_user_limit   INTEGER,
+  expires_at       TEXT,
+  created_at       TEXT NOT NULL
 );
 
--- Транзакции (пополнения / вывод)
+CREATE TABLE IF NOT EXISTS promo_redemptions (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  promo_id   INTEGER NOT NULL,
+  user_id    INTEGER NOT NULL,
+  redeemed_at TEXT NOT NULL,
+  FOREIGN KEY(promo_id) REFERENCES promos(id) ON DELETE CASCADE,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS transactions (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id     INTEGER NOT NULL,
   amount      INTEGER NOT NULL,
-  type        TEXT NOT NULL,              -- deposit / withdraw
+  type        TEXT NOT NULL,              -- deposit / withdraw / promo / manual / premium
+  description TEXT,
   created_at  TEXT NOT NULL,
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Выводы
+CREATE TABLE IF NOT EXISTS withdraws (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  amount INTEGER,
+  status TEXT DEFAULT 'pending',
+  tx_hash TEXT,
+  reason TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT
+);
+
+-- Реклама
+CREATE TABLE IF NOT EXISTS ads (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  image_path TEXT NOT NULL,
+  href TEXT,
+  position TEXT,
+  active INTEGER DEFAULT 1,
+  views INTEGER DEFAULT 0,
+  clicks INTEGER DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT
 );

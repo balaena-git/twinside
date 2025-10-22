@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>TwinSide — Лента</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/public.css" />
+  <style>
+    .feed-wrap{max-width:1100px;margin:0 auto;padding:16px;}
+    .filters{display:flex;gap:8px;margin:8px 0 16px;}
+    .filters input,.filters select{background:#141418;color:#fff;border:none;border-radius:8px;padding:10px 12px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .card{background:#141418;border-radius:12px;padding:12px;box-shadow:0 0 15px rgba(127,61,244,.15);display:flex;flex-direction:column;align-items:center}
+    .card img{width:140px;height:140px;border-radius:50%;object-fit:cover;border:2px solid #7f3df4}
+    .card h3{margin:10px 0 4px}
+    .card .meta{color:#cfcfe2;font-size:14px;margin:0 0 10px}
+    .card .actions{display:flex;gap:8px}
+    .card .btn{background:#7f3df4;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer}
+    .pagination{margin:16px 0;text-align:center}
+    .pagination button{background:#141418;color:#fff;border:none;border-radius:6px;margin:0 4px;padding:6px 10px;cursor:pointer}
+    .pagination .active{background:#7f3df4}
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <main class="main-content">
+      <section class="feed-wrap">
+        <h1>Лента</h1>
+
+        <section id="activation-cta" class="cta-banner is-hidden">
+          <div class="cta-inner">
+            <h3>Активируйте аккаунт для полного доступа</h3>
+            <p>Регистрация бесплатна. Можно активировать промокодом или пополнением баланса.</p>
+          </div>
+        </section>
+
+        <div class="filters">
+          <input id="city" placeholder="Город" />
+          <select id="gender">
+            <option value="">Пол — любой</option>
+            <option value="woman">Женщина</option>
+            <option value="man">Мужчина</option>
+            <option value="pair">Пара</option>
+            <option value="trans_woman">Транс‑женщина</option>
+            <option value="trans_man">Транс‑мужчина</option>
+          </select>
+          <button id="apply" class="btn">Найти</button>
+        </div>
+
+        <div id="feed" class="grid"></div>
+        <div id="pager" class="pagination"></div>
+
+        <section class="ad-block">
+          <div id="ad-slot-feed" class="ad-slot"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/public-app.js" defer></script>
+  <script src="/js/ads-public.js" defer></script>
+  <script src="/js/feed.js" defer></script>
+</body>
+</html>
+

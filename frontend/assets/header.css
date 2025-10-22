@@ -15,9 +15,19 @@
   font-weight:700;
   font-size:22px;
   color:#F2C94C;
-  cursor:pointer;
+  text-decoration:none;
   text-shadow:0 0 10px rgba(242,201,76,.5);
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
+
+.logo-icon {
+  width:28px;
+  height:28px;
+  display:block;
+}
+.logo-text { color:#F2C94C; }
 nav a {
   color:#CFCFE2;
   text-decoration:none;

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Фотографии — TwinSide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+  <div id="app-content">
+    <section class="widget">
+      <h3>Фотографии</h3>
+      <div id="controls" class="row" style="display:none; gap:8px; align-items:center; margin-bottom:8px">
+        <input id="photos-input" type="file" accept="image/*" multiple />
+        <button id="photos-upload" class="btn">Загрузить</button>
+      </div>
+      <div id="gallery" class="thumbs"></div>
+    </section>
+  </div>
+  <script src="/app/js/app-shell.js" defer></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('id');
+    async function load(){
+      const g = document.getElementById('gallery'); g.innerHTML = '<div class="table-message">Загрузка…</div>';
+      try{
+        const res = await (await fetch(`/users/${userId || 0}/photos?limit=60`, { credentials:'include' })).json();
+        g.innerHTML = '';
+        if (!res.ok || !Array.isArray(res.photos) || res.photos.length===0){ g.innerHTML='<div class="table-message">Нет фотографий</div>'; return; }
+        res.photos.forEach(p=>{ const img=document.createElement('img'); img.src=p.path; g.appendChild(img); });
+      }catch{ g.innerHTML='<div class="table-message">Ошибка загрузки</div>'; }
+    }
+    async function upload(){
+      const inp = document.getElementById('photos-input');
+      if (!inp.files.length) return;
+      const fd = new FormData();
+      Array.from(inp.files).forEach(f=>fd.append('photos', f));
+      const res = await fetch('/me/photos', { method:'POST', credentials:'include', body: fd });
+      const data = await res.json();
+      if (!data.ok){ alert('Ошибка: '+(data.error||'upload_failed')); return; }
+      load();
+    }
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      // show upload controls for owner
+      try{ const st = await (await fetch('/me/status',{credentials:'include'})).json(); if (st.ok && (!userId || String(st.id)===String(userId))){ document.getElementById('controls').style.display='flex'; } }catch{}
+      document.getElementById('photos-upload').addEventListener('click', upload);
+      load();
+    });
+  </script>
+</body>
+</html>

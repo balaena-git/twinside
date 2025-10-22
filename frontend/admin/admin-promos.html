@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎟 Промокоды — TwinSide Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="../assets/admin-pages.css" />
+</head>
+<body>
+  <header class="admin-header">
+    <h1>🎟 Промокоды</h1>
+    <nav id="nav" class="admin-nav is-hidden">
+      <a href="/admin/admin.html">🏠 Дашборд</a>
+      <a href="/admin/admin-pending.html">Анкеты</a>
+      <a href="/admin/admin-users.html">Пользователи</a>
+      <a href="/admin/admin-finance.html">Финансы</a>
+      <a href="/admin/admin-promos.html">Промокоды</a>
+      <a href="/admin/admin-support.html">Поддержка</a>
+      <a href="/admin/admin-complaints.html">Жалобы</a>
+      <a href="/admin/admin-ads.html">Реклама</a>
+    </nav>
+    <button id="logout" class="btn violet is-hidden">Выйти</button>
+  </header>
+
+  <main class="is-hidden">
+    <section class="promo-form">
+      <h2>Создать промокод</h2>
+      <p class="hint">Код: 3–32 символа (A–Z, 0–9, -, _). Сумма — сколько зачислить при активации.</p>
+      <div class="form-grid">
+        <div class="field">
+          <label for="p-code">Код</label>
+          <input id="p-code" placeholder="Например: WELCOME100">
+        </div>
+        <div class="field">
+          <label for="p-value">Сумма</label>
+          <input id="p-value" type="number" placeholder="100" min="1">
+        </div>
+        <div class="field">
+          <label for="p-active">Статус</label>
+          <label class="inline"><input id="p-active" type="checkbox" checked> Активен</label>
+        </div>
+        <div class="field">
+          <label for="p-max">Макс. активаций</label>
+          <input id="p-max" type="number" placeholder="Без ограничения" min="1">
+        </div>
+        <div class="field">
+          <label for="p-user">Лимит на пользователя</label>
+          <input id="p-user" type="number" placeholder="По умолчанию: 1" min="1">
+        </div>
+        <div class="field">
+          <label for="p-exp">Действует до</label>
+          <input id="p-exp" type="date">
+        </div>
+      </div>
+      <div class="actions"><button id="p-create" class="btn gold">Создать</button></div>
+    </section>
+
+    <section class="promo-list">
+      <h2>Список</h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Код</th>
+            <th>Сумма</th>
+            <th>Активен</th>
+            <th>Активаций</th>
+            <th>Лимиты</th>
+            <th>Дедлайн</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="promo-body">
+          <tr><td colspan="8" class="table-message">Загрузка…</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>© TwinSide Admin 2025</footer>
+
+  <script src="./js/admin-common.js" defer></script>
+  <script src="./js/promos.js" defer></script>
+</body>
+</html>

@@ -5,135 +5,29 @@
   <title>👥 Пользователи — TwinSide Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../assets/admin.css">
-  <style>
-    .users-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 20px 0;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .users-toolbar select, .users-toolbar input {
-      background: #141418;
-      border: none;
-      color: #fff;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-    .users-toolbar button {
-      background: #F2C94C;
-      color: #0B0B0D;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #0B0B0D;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 10px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.1);
-      font-size: 14px;
-    }
-    th {
-      text-transform: uppercase;
-      color: #F2C94C;
-      font-size: 13px;
-    }
-    td { color: #EAEAEA; }
-    .action-btn {
-      background: #7F3DF4;
-      border: none;
-      padding: 6px 10px;
-      margin: 2px;
-      border-radius: 6px;
-      color: #fff;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .pagination {
-      margin-top: 20px;
-      text-align: center;
-    }
-    .pagination button {
-      background: #141418;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      margin: 0 5px;
-      padding: 6px 12px;
-      cursor: pointer;
-    }
-    .pagination button.active {
-      background: #7F3DF4;
-    }
-    /* Модалка */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,.7);
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-    }
-    .modal-content {
-      background: #141418;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      color: #fff;
-    }
-    .modal-content input, .modal-content textarea, .modal-content select {
-      width: 100%;
-      margin: 6px 0;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      background: #0B0B0D;
-      color: #fff;
-    }
-    .modal-content button {
-      background: #F2C94C;
-      color: #0B0B0D;
-      font-weight: 600;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="../assets/admin-pages.css">
 </head>
 <body>
-  <header>
+  <header class="admin-header">
     <h1>👥 Пользователи</h1>
-    <nav class="admin-nav">
+    <nav id="nav" class="admin-nav is-hidden">
       <a href="/admin/admin.html">🏠 Дашборд</a>
       <a href="/admin/admin-pending.html">Анкеты</a>
-      <a class="active" href="/admin/admin-users.html">Пользователи</a>
+      <a href="/admin/admin-users.html">Пользователи</a>
       <a href="/admin/admin-finance.html">Финансы</a>
       <a href="/admin/admin-promos.html">Промокоды</a>
       <a href="/admin/admin-support.html">Поддержка</a>
+      <a href="/admin/admin-complaints.html">Жалобы</a>
       <a href="/admin/admin-ads.html">Реклама</a>
     </nav>
-    <button id="logout" class="btn">Выйти</button>
+    <button id="logout" class="btn violet is-hidden">Выйти</button>
   </header>
 
-  <main>
+  <main class="is-hidden">
     <div class="dashboard">
       <div class="users-toolbar">
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <input id="search" placeholder="Поиск по нику или email...">
+        <div class="filters">
+          <input id="search" placeholder="Поиск по нику или email…">
           <select id="type-filter">
             <option value="all">Все</option>
             <option value="real">Реальные</option>
@@ -144,15 +38,24 @@
         <button id="create-fake" class="btn gold">➕ Создать фейк</button>
       </div>
 
-      <table id="users-table">
+      <table id="users-table" class="admin-table">
         <thead>
           <tr>
-            <th>ID</th><th>Ник</th><th>Email</th><th>Пол</th><th>Тип</th>
-            <th>Город</th><th>Баланс</th><th>Статус</th><th>Действия</th>
+            <th>ID</th>
+            <th>Ник</th>
+            <th>Email</th>
+            <th>Пол</th>
+            <th>Тип</th>
+            <th>Город</th>
+            <th>Баланс</th>
+            <th>Статус</th>
+            <th>Действия</th>
           </tr>
         </thead>
         <tbody id="users-body">
-          <tr><td colspan="9" style="text-align:center;color:#999;">Загрузка...</td></tr>
+          <tr>
+            <td colspan="9" class="table-message">Загрузка…</td>
+          </tr>
         </tbody>
       </table>
 
@@ -162,7 +65,6 @@
 
   <footer>© TwinSide Admin 2025</footer>
 
-  <!-- Модалка создания фейка -->
   <div class="modal" id="fake-modal">
     <div class="modal-content">
       <h3>Создание фейк-пользователя</h3>
@@ -176,177 +78,14 @@
       <input id="fake-city" placeholder="Город">
       <textarea id="fake-about" rows="3" placeholder="О себе"></textarea>
       <textarea id="fake-interests" rows="2" placeholder="Интересы через запятую"></textarea>
-      <button id="save-fake">Сохранить</button>
+      <div class="modal-actions">
+        <button id="close-fake" class="btn">Отмена</button>
+        <button id="save-fake" class="btn gold">Сохранить</button>
+      </div>
     </div>
   </div>
 
-  <script>
-    const API = "http://localhost:3000/api/admin";
-    let currentPage = 1;
-
-    async function loadUsers() {
-      const search = document.getElementById("search").value;
-      const type = document.getElementById("type-filter").value;
-      const res = await fetch(`${API}/users?search=${encodeURIComponent(search)}&type=${type}&page=${currentPage}`, { credentials: "include" });
-      const data = await res.json();
-
-      const tbody = document.getElementById("users-body");
-      if (!data.ok || !data.users.length) {
-        tbody.innerHTML = "<tr><td colspan='9' style='text-align:center;color:#999;'>Пользователи не найдены</td></tr>";
-        return;
-      }
-      tbody.innerHTML = "";
-      data.users.forEach(u => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${u.id}</td>
-          <td>${u.nick}</td>
-          <td>${u.email || "—"}</td>
-          <td>${u.gender || "—"}</td>
-          <td>${u.is_fake ? "🪄 Фейк" : "🧍 Реальный"}</td>
-          <td>${u.city || "—"}</td>
-          <td>${u.balance}</td>
-          <td>${u.status}</td>
-          <td>
-            <button class="action-btn" onclick="toggleBan(${u.id}, ${u.banned ? 0 : 1})">${u.banned ? "Разбанить" : "Забанить"}</button>
-            <button class="action-btn" onclick="editBalance(${u.id}, ${u.balance})">💰 Баланс</button>
-            <button class="action-btn" onclick="impersonate(${u.id})">👤 Войти</button>
-            <button class="action-btn" onclick="togglePremium(${u.id}, ${u.premium ? 0 : 1})">${u.premium ? "Снять⭐" : "Дать⭐"}</button>
-            ${u.is_fake ? `<button class="action-btn" onclick="deleteFake(${u.id})">🗑 Удалить</button>` : ""}
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-
-      renderPagination(data.pagination);
-    }
-
-    function renderPagination(p) {
-      const div = document.getElementById("pagination");
-      div.innerHTML = "";
-      for (let i = 1; i <= p.totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.classList.toggle("active", i === p.page);
-        btn.onclick = () => { currentPage = i; loadUsers(); };
-        div.appendChild(btn);
-      }
-    }
-
-    async function toggleBan(id, banned) {
-      await fetch(`${API}/user/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ banned })
-      });
-      loadUsers();
-    }
-
-    async function togglePremium(id, premium) {
-      await fetch(`${API}/user/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ premium })
-      });
-      loadUsers();
-    }
-
-    async function editBalance(id, oldBalance) {
-      const newBalance = prompt("Введите новый баланс:", oldBalance);
-      if (newBalance === null) return;
-      await fetch(`${API}/user/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ balance: parseInt(newBalance) })
-      });
-      loadUsers();
-    }
-
-    async function impersonate(id) {
-  const res = await fetch(`${API}/impersonate/${id}`, { method: "POST", credentials: "include" });
-  const data = await res.json();
-  if (data.ok) {
-    window.open(`/auth/impersonate?token=${data.token}`, "_blank");
-  } else {
-    alert("Ошибка входа: " + data.error);
-  }
-}
-
-
-    // === Создание фейка ===
-    document.getElementById("create-fake").onclick = async () => {
-  const nick = prompt("Введите ник фейка:");
-  if (!nick) return;
-  const city = prompt("Город (можно пропустить):", "Киев");
-  const gender = prompt("Пол (man / woman / pair / trans):", "woman");
-  const about = prompt("Описание (опционально):", "Фейковый профиль для теста.");
-
-  const res = await fetch(`${API}/users/fake`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ nick, city, gender, about })
-  });
-
-  const data = await res.json();
-  if (data.ok) {
-    alert("✅ Фейковый профиль создан");
-    loadUsers();
-  } else {
-    alert("Ошибка: " + (data.error || "Не удалось создать"));
-  }
-};
-
-    async function deleteFake(id) {
-      if (!confirm("Удалить фейк-пользователя?")) return;
-      await fetch(`${API}/user/${id}`, { method: "DELETE", credentials: "include" });
-      loadUsers();
-    }
-
-    document.getElementById("search-btn").onclick = () => { currentPage = 1; loadUsers(); };
-    document.getElementById("logout").onclick = async () => {
-      await fetch(`${API}/logout`, { method: "POST", credentials: "include" });
-      location.href = "/admin/admin.html";
-    };
-
-    loadUsers();
-
-    document.getElementById("sendFake").onclick = async () => {
-  const nick = document.getElementById("fakeNick").value.trim();
-  if (!nick) return alert("Введите ник!");
-  const city = document.getElementById("fakeCity").value.trim();
-  const gender = document.getElementById("fakeGender").value;
-  const about = document.getElementById("fakeAbout").value.trim();
-  const file = document.getElementById("fakeAvatar").files[0];
-
-  const fd = new FormData();
-  fd.append("nick", nick);
-  fd.append("city", city);
-  fd.append("gender", gender);
-  fd.append("about", about);
-  if (file) fd.append("avatar", file);
-
-  try {
-    const res = await fetch(`${API}/users/fake`, {
-      method: "POST",
-      credentials: "include",
-      body: fd
-    });
-    const data = await res.json();
-    if (data.ok) {
-      alert("✅ Фейк создан!");
-      loadUsers(); // обновляем таблицу
-    } else {
-      alert("Ошибка: " + data.error);
-    }
-  } catch (e) {
-    alert("Ошибка отправки: " + e.message);
-  }
-};
-
-  </script>
+  <script src="./js/admin-common.js" defer></script>
+  <script src="./js/users.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,230 @@
+#preloader {
+  position: fixed;
+  inset: 0;
+  background: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 9999;
+  transition: opacity 0.6s ease;
+}
+
+#preloader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-logo {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 25px rgba(242, 201, 76, 0.6);
+  animation: pulse 1.8s infinite ease-in-out;
+}
+
+.loader-sub {
+  font-size: 14px;
+  color: var(--text-med);
+  letter-spacing: 2px;
+  margin-top: 8px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(180deg, rgba(11, 11, 13, 0.6), rgba(11, 11, 13, 0.95)),
+    url("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1600&q=80")
+      center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+}
+
+.hero-content {
+  z-index: 2;
+  max-width: 720px;
+  background: rgba(20, 20, 25, 0.6);
+  backdrop-filter: blur(12px);
+  padding: 50px 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 50px rgba(127, 61, 244, 0.35);
+}
+
+.hero h1 {
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 20px;
+  text-shadow: 0 0 30px rgba(242, 201, 76, 0.5);
+}
+
+.hero p {
+  font-size: 18px;
+  color: var(--text-med);
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.hero button {
+  background: linear-gradient(90deg, var(--gold), #ffe38b);
+  border: none;
+  color: var(--black);
+  font-weight: 700;
+  font-size: 17px;
+  padding: 14px 44px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 0 25px rgba(242, 201, 76, 0.4);
+}
+
+.hero button:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.1);
+}
+
+section {
+  padding: 100px 20px;
+  text-align: center;
+  position: relative;
+}
+
+.about {
+  background: var(--carbon);
+}
+
+.about h2 {
+  color: var(--gold);
+  font-size: 36px;
+  margin-bottom: 25px;
+}
+
+.about p {
+  color: var(--text-med);
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.features {
+  background: linear-gradient(180deg, rgba(11, 11, 13, 0.8), rgba(11, 11, 13, 0.95)),
+    url("https://images.unsplash.com/photo-1517832207067-4db24a2ae47c?auto=format&fit=crop&w=1600&q=80")
+      center / cover no-repeat;
+}
+
+.features h2 {
+  color: var(--gold);
+  font-size: 34px;
+  margin-bottom: 40px;
+}
+
+.features-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.feature {
+  background: rgba(20, 20, 25, 0.6);
+  padding: 30px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(127, 61, 244, 0.25);
+  transition: 0.3s;
+}
+
+.feature:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 25px rgba(127, 61, 244, 0.5);
+}
+
+.feature h3 {
+  color: var(--gold);
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.feature p {
+  color: var(--text-med);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.cta {
+  background: linear-gradient(90deg, var(--violet), #a34df8);
+  color: #fff;
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.cta h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.cta button {
+  background: var(--gold);
+  color: var(--black);
+  padding: 14px 38px;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(242, 201, 76, 0.4);
+  transition: 0.25s;
+}
+
+.cta button:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.1);
+}
+
+footer {
+  background: var(--carbon);
+  color: var(--text-med);
+  font-size: 14px;
+  text-align: center;
+  padding: 25px 15px;
+}
+
+footer a {
+  color: var(--violet);
+  text-decoration: none;
+  margin: 0 10px;
+  transition: 0.2s;
+}
+
+footer a:hover {
+  color: var(--gold);
+}
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 44px;
+  }
+
+  .hero p {
+    font-size: 16px;
+  }
+
+  section {
+    padding: 80px 15px;
+  }
+}

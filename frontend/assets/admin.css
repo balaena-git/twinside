@@ -22,6 +22,10 @@ body {
   flex-direction: column;
 }
 
+.is-hidden {
+  display: none !important;
+}
+
 /* ====== HEADER ====== */
 header {
   width: 100%;

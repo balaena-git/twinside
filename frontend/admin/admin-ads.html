@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>📢 Реклама — TwinSide Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="../assets/admin-pages.css" />
+</head>
+<body>
+  <header class="admin-header">
+    <h1>📢 Реклама</h1>
+    <nav id="nav" class="admin-nav is-hidden">
+      <a href="/admin/admin.html">🏠 Дашборд</a>
+      <a href="/admin/admin-pending.html">Анкеты</a>
+      <a href="/admin/admin-users.html">Пользователи</a>
+      <a href="/admin/admin-finance.html">Финансы</a>
+      <a href="/admin/admin-promos.html">Промокоды</a>
+      <a href="/admin/admin-support.html">Поддержка</a>
+      <a href="/admin/admin-complaints.html">Жалобы</a>
+      <a href="/admin/admin-ads.html">Реклама</a>
+    </nav>
+    <button id="logout" class="btn violet is-hidden">Выйти</button>
+  </header>
+
+  <main class="is-hidden">
+    <section class="ad-form">
+      <h2>Добавить баннер</h2>
+      <p class="hint">Загрузите изображение баннера. Укажите ссылку перехода и позицию (например: feed, profile). Баннеры видны всем, кроме премиум‑пользователей (реализацию скрытия на клиенте добавим позже).</p>
+      <div class="form-grid">
+        <div class="field">
+          <label for="a-href">Ссылка</label>
+          <input id="a-href" placeholder="https://example.com/landing" />
+        </div>
+        <div class="field">
+          <label for="a-pos">Позиция</label>
+          <input id="a-pos" placeholder="feed / profile / global" />
+        </div>
+        <div class="field">
+          <label for="a-active">Статус</label>
+          <label class="inline"><input id="a-active" type="checkbox" checked /> Активен</label>
+        </div>
+        <div class="field">
+          <label for="a-file">Изображение</label>
+          <input id="a-file" type="file" accept="image/*" />
+        </div>
+      </div>
+      <div class="actions"><button id="a-create" class="btn gold">Загрузить</button></div>
+    </section>
+
+    <section class="ad-list">
+      <h2>Баннеры</h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Превью</th>
+            <th>Ссылка</th>
+            <th>Позиция</th>
+            <th>Статус</th>
+            <th>Клики</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="ads-body">
+          <tr><td colspan="7" class="table-message">Загрузка…</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>© TwinSide Admin 2025</footer>
+
+  <script src="./js/admin-common.js" defer></script>
+  <script src="./js/ads.js" defer></script>
+</body>
+</html>

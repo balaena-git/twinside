@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>TwinSide — Создание анкеты</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
+  <link rel="mask-icon" href="/assets/icons/logo.svg" color="#7F3DF4">
+
+  <link rel="stylesheet" href="/assets/public.css">
+  <link rel="stylesheet" href="/assets/profile-setup.css">
+</head>
+<body class="profile-page" data-no-chrome="true">
+  <div class="profile-card" id="form-box">
+    <h1>Создание анкеты</h1>
+    <form id="profile-form">
+      <label>Аватар</label>
+      <input type="file" id="avatar" accept="image/*" required>
+      <div class="preview-group" id="avatar-preview"></div>
+
+      <label>Фото для верификации</label>
+      <div class="verify-hint" id="verify-hint"></div>
+      <input type="file" id="verify" accept="image/*" required>
+      <div class="preview-group" id="verify-preview"></div>
+
+      <label>О себе</label>
+      <textarea id="about" maxlength="300" placeholder="Коротко расскажите о себе..."></textarea>
+
+      <label>Кого ищете</label>
+      <div class="choice-group" id="looking-group">
+        <div class="choice-btn" data-value="woman">Женщину</div>
+        <div class="choice-btn" data-value="man">Мужчину</div>
+        <div class="choice-btn" data-value="pair">Пару</div>
+        <div class="choice-btn" data-value="trans_woman">Транс-женщину</div>
+        <div class="choice-btn" data-value="trans_man">Транс-мужчину</div>
+      </div>
+
+      <label>Интересы</label>
+      <div class="tag-group" id="interests-group"></div>
+
+      <button type="submit">Отправить на модерацию</button>
+    </form>
+  </div>
+
+  <div class="profile-card profile-success profile-hidden" id="success-box">
+    <h1>✅ Анкета отправлена</h1>
+    <p>Ваша анкета отправлена на проверку.<br>
+    Мы уведомим вас по email, когда модерация завершится.</p>
+    <button onclick="window.location.href='/public/auth'">На главную</button>
+  </div>
+
+  <script src="/js/public-app.js" defer></script>
+  <script src="/js/profile-setup.js" defer></script>
+</body>
+</html>

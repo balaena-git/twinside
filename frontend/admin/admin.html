@@ -9,16 +9,17 @@
 <body>
   <header class="admin-header">
     <h1>👑 TwinSide Admin</h1>
-    <nav id="nav" class="admin-nav" style="display:none;">
+    <nav id="nav" class="admin-nav is-hidden">
       <a class="active" href="/admin/admin.html">Дашборд</a>
       <a href="/admin/admin-pending.html">Анкеты</a>
       <a href="/admin/admin-users.html">Пользователи</a>
       <a href="/admin/admin-finance.html">Финансы</a>
       <a href="/admin/admin-promos.html">Промокоды</a>
       <a href="/admin/admin-support.html">Поддержка</a>
+      <a href="/admin/admin-complaints.html">Жалобы</a>
       <a href="/admin/admin-ads.html">Реклама</a>
     </nav>
-    <button id="logout" class="btn violet" style="display:none;">Выйти</button>
+    <button id="logout" class="btn violet is-hidden">Выйти</button>
   </header>
 
   <main>
@@ -32,7 +33,7 @@
     </section>
 
     <!-- Дашборд -->
-    <section class="dashboard" id="dashboard" style="display:none;">
+    <section class="dashboard is-hidden" id="dashboard">
       <h2>📊 Общая статистика</h2>
       <div class="cards grid-3">
         <div class="card"><h3>👥 Всего пользователей</h3><p id="totalUsers">—</p></div>
@@ -58,6 +59,9 @@
         <a href="/admin/admin-finance.html" class="card link">
           <h3>💰 Финансы</h3><p>Выводы и пополнения</p>
         </a>
+        <a href="/admin/admin-complaints.html" class="card link">
+          <h3>🚨 Жалобы</h3><p>Рассмотрение репортов</p>
+        </a>
         <a href="/admin/admin-ads.html" class="card link">
           <h3>📢 Реклама</h3><p>Добавить баннеры</p>
         </a>
@@ -67,83 +71,7 @@
 
   <footer>© TwinSide Admin 2025</footer>
 
-  <script>
-    const API = "http://localhost:3000/api/admin";
-    const nav = document.getElementById("nav");
-    const loginBox = document.getElementById("login-box");
-    const dashboard = document.getElementById("dashboard");
-    const logoutBtn = document.getElementById("logout");
-
-    // Проверка сессии
-    async function checkSession() {
-      try {
-        const res = await fetch(`${API}/check-session`, { credentials: "include" });
-        const data = await res.json();
-        if (data.ok) showDashboard();
-      } catch (e) { console.warn(e); }
-    }
-
-    // Авторизация
-    async function loginAdmin() {
-      const email = document.getElementById("admin-email").value.trim();
-      const pass = document.getElementById("admin-pass").value.trim();
-      const err = document.getElementById("login-error");
-      err.textContent = "";
-
-      try {
-        const res = await fetch(`${API}/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ email, password: pass })
-        });
-        const data = await res.json();
-        if (data.ok) showDashboard();
-        else err.textContent = data.error || "Ошибка входа";
-      } catch {
-        err.textContent = "Ошибка соединения с сервером";
-      }
-    }
-
-    // Показ панели
-    function showDashboard() {
-      loginBox.style.display = "none";
-      dashboard.style.display = "block";
-      logoutBtn.style.display = "inline-block";
-      nav.style.display = "flex";
-      loadDashboard();
-    }
-
-    // Загрузка данных дашборда
-    async function loadDashboard() {
-      try {
-        const res = await fetch(`${API}/dashboard`, { credentials: "include" });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.error || "Ошибка загрузки");
-
-        document.getElementById("totalUsers").textContent = data.users.total;
-        document.getElementById("onlineUsers").textContent = data.users.online;
-        document.getElementById("newToday").textContent = data.users.newToday;
-        document.getElementById("activeUsers").textContent = data.users.active;
-        document.getElementById("pendingProfiles").textContent = data.profiles.pending;
-        document.getElementById("rejectedProfiles").textContent = data.profiles.rejected;
-        document.getElementById("totalBalance").textContent = data.economy.totalBalance + " секскоинов";
-        document.getElementById("income").textContent = data.economy.income24h + " секскоинов";
-        document.getElementById("complaints").textContent = data.complaints;
-        document.getElementById("promos").textContent = data.promos;
-      } catch (e) {
-        console.error("Ошибка загрузки дашборда:", e);
-      }
-    }
-
-    // Выход
-    logoutBtn.onclick = async () => {
-      await fetch(`${API}/logout`, { method: "POST", credentials: "include" });
-      location.reload();
-    };
-
-    document.getElementById("login-btn").onclick = loginAdmin;
-    checkSession();
-  </script>
+  <script src="./js/admin-common.js" defer></script>
+  <script src="./js/dashboard.js" defer></script>
 </body>
 </html>

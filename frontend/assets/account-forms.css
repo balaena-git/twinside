@@ -1,0 +1,125 @@
+body.account-page {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: var(--black, #0b0b0d);
+  color: var(--text-hi, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+}
+
+body.account-page::before,
+body.account-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -2;
+}
+
+body.account-page::before {
+  background: var(--account-bg, rgba(11, 11, 13, 0.9)) center / cover no-repeat;
+  filter: brightness(0.35) blur(3px);
+}
+
+body.account-reset {
+  --account-bg: url("https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=1600&q=80");
+}
+
+body.account-page::after {
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 11, 13, 0.6) 0%,
+    rgba(11, 11, 13, 0.95) 100%
+  );
+}
+
+.account-card {
+  background: rgba(20, 20, 25, 0.85);
+  padding: 30px;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 0 24px rgba(127, 61, 244, 0.25);
+  animation: fadeUp 0.6s ease;
+}
+
+.account-card h1 {
+  text-align: center;
+  color: var(--gold, #f2c94c);
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.account-card p {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.account-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  border: 1px solid #1c1c22;
+  background: #0b0b0d;
+  color: #ffffff;
+}
+
+.account-card input:focus {
+  outline: none;
+  border-color: var(--violet, #7f3df4);
+  box-shadow: 0 0 8px rgba(127, 61, 244, 0.5);
+}
+
+.account-card button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  background: var(--gold, #f2c94c);
+  color: #0b0b0d;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 18px rgba(242, 201, 76, 0.35);
+}
+
+.account-card button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.account-divider {
+  margin: 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.account-extra {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.account-extra a {
+  color: var(--violet, #7f3df4);
+  text-decoration: none;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

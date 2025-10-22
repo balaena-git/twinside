@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>TwinSide — Мой профиль</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/public.css" />
+  <link rel="stylesheet" href="/assets/profile.css" />
+</head>
+<body>
+  <div class="page-wrapper">
+    <main class="main-content">
+      <section class="profile-wrap">
+        <div class="profile-card">
+          <img id="ava" class="avatar" src="/assets/icons/user.svg" alt="avatar" />
+          <div class="info">
+            <h1 id="nick">—</h1>
+            <p id="email" class="muted">—</p>
+            <p id="status" class="badge">—</p>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn" href="/public/support">Поддержка</a>
+          <a class="btn" href="/public">На главную</a>
+        </div>
+      </section>
+
+      <section id="activation-cta" class="cta-banner is-hidden">
+        <div class="cta-inner">
+          <h3>Почти готово! Активируйте аккаунт для полного доступа</h3>
+          <p>Регистрация бесплатна — активировать можно промокодом или пополнением.
+             Перейдите в кошелёк, чтобы активировать бонусы и скрыть рекламу.</p>
+          <a class="btn" href="/public">Открыть кошелёк</a>
+        </div>
+      </section>
+
+      <section class="ad-block">
+        <h3 class="muted">Рекомендации</h3>
+        <div id="ad-slot-feed" class="ad-slot"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/public-app.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await PublicApp.request('/me/status');
+        if (!res.ok) { window.location.href = '/public/auth'; return; }
+        document.getElementById('nick').textContent = res.nick || `ID ${res.id}`;
+        document.getElementById('email').textContent = res.email || '—';
+        document.getElementById('status').textContent = res.status || '—';
+        if (res.avatar_path) document.getElementById('ava').src = res.avatar_path;
+        if (res.status === 'requires_payment') {
+          document.getElementById('activation-cta').classList.remove('is-hidden');
+        }
+      } catch (e) { console.warn(e); }
+    });
+  </script>
+  <script src="/js/ads-public.js" defer></script>
+</body>
+</html>

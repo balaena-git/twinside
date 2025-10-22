@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>🚨 Жалобы — TwinSide Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="../assets/admin-pages.css" />
+</head>
+<body>
+  <header class="admin-header">
+    <h1>🚨 Жалобы</h1>
+    <nav id="nav" class="admin-nav is-hidden">
+      <a href="/admin/admin.html">🏠 Дашборд</a>
+      <a href="/admin/admin-pending.html">Анкеты</a>
+      <a href="/admin/admin-users.html">Пользователи</a>
+      <a href="/admin/admin-finance.html">Финансы</a>
+      <a href="/admin/admin-promos.html">Промокоды</a>
+      <a href="/admin/admin-support.html">Поддержка</a>
+      <a href="/admin/admin-complaints.html">Жалобы</a>
+      <a href="/admin/admin-ads.html">Реклама</a>
+    </nav>
+    <button id="logout" class="btn violet is-hidden">Выйти</button>
+  </header>
+
+  <main class="is-hidden">
+    <div class="toolbar">
+      <select id="status">
+        <option value="new">Новые</option>
+        <option value="warned">Предупреждённые</option>
+        <option value="banned">Забаненные</option>
+        <option value="ignored">Игнор</option>
+        <option value="all">Все</option>
+      </select>
+      <button id="reload" class="btn">Обновить</button>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>От</th>
+          <th>На</th>
+          <th>Причина</th>
+          <th>Статус</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6" class="table-message">Загрузка…</td></tr>
+      </tbody>
+    </table>
+  </main>
+
+  <footer>© TwinSide Admin 2025</footer>
+
+  <script src="./js/admin-common.js" defer></script>
+  <script src="./js/complaints.js" defer></script>
+</body>
+</html>
