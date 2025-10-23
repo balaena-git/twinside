@@ -150,19 +150,23 @@ html, body { background: var(--black); color: var(--text); font-family: Inter, s
 .profile-feed-action.like.active { background:rgba(127,61,244,.2); border-color:var(--violet); color:#fff; }
 .profile-feed-action.comment.open { border-color:rgba(255,255,255,.4); color:#fff; }
 .profile-feed-comments { border-top:1px solid rgba(255,255,255,.08); margin-top:12px; padding-top:12px; display:flex; flex-direction:column; gap:12px; }
-.profile-feed-comments-list { display:flex; flex-direction:column; gap:10px; }
-.profile-feed-comment-wrapper { display:flex; flex-direction:column; gap:8px; width:100%; }
-.profile-feed-comment { display:flex; gap:10px; align-items:flex-start; }
-.profile-feed-comment-avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.12); }
-.profile-feed-comment-body { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:8px 12px; display:flex; flex-direction:column; gap:4px; }
-.profile-feed-comment-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.profile-feed-comment-author { font-weight:600; font-size:13px; color:#fff; }
+.profile-feed-comments-list { display:flex; flex-direction:column; gap:0; }
+.profile-feed-comment-wrapper { display:flex; flex-direction:column; gap:8px; width:100%; padding:12px 0; border-top:1px solid rgba(255,255,255,.08); }
+.profile-feed-comment-wrapper:first-child { border-top:none; padding-top:0; }
+.profile-feed-comment { display:flex; gap:12px; align-items:flex-start; width:100%; }
+.profile-feed-comment-avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.16); box-shadow:0 6px 16px rgba(0,0,0,.25); }
+.profile-feed-comment-body { flex:1; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:10px 14px; display:flex; flex-direction:column; gap:6px; box-shadow:0 10px 24px rgba(0,0,0,.28); }
+.profile-feed-comment-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,.12); }
+.profile-feed-comment-author { font-weight:700; font-size:14px; color:#f2c94c; text-decoration:none; letter-spacing:.02em; }
+.profile-feed-comment-author:hover { color:#fff; text-shadow:0 0 6px rgba(242,201,76,.6); }
+.profile-feed-comment-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; font-size:12px; }
+.profile-feed-comment-date { color:#cfcfe2; opacity:.6; }
 .profile-feed-comment-text { color:#fff; font-size:13px; line-height:1.5; }
-.profile-feed-comment-date { color:#cfcfe2; font-size:11px; opacity:.8; }
+.profile-feed-comment-date { color:#cfcfe2; font-size:11px; opacity:.8; text-align:right; }
 .profile-feed-comment-empty { color:#cfcfe2; font-size:13px; text-align:center; padding:6px 0; }
 .profile-feed-comment-reply { background:transparent; border:none; color:var(--violet); font-size:12px; cursor:pointer; padding:0; }
 .profile-feed-comment-reply:hover { text-decoration:underline; }
-.profile-feed-comment-thread { display:flex; flex-direction:column; gap:10px; margin-left:46px; width:100%; }
+.profile-feed-comment-thread { display:flex; flex-direction:column; gap:10px; margin-left:46px; width:100%; border-left:1px solid rgba(255,255,255,.06); padding-left:12px; }
 .profile-feed-comment-reply-slot { margin-left:46px; }
 .profile-feed-comment-reply-slot form { margin-top:6px; }
 .profile-feed-comment-form { display:flex; gap:8px; }

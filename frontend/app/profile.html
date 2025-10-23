@@ -547,16 +547,9 @@
 
       const authorLine = document.createElement('div');
       authorLine.className = 'profile-feed-comment-header';
-      const author = document.createElement('span');
+      const author = document.createElement('a');
       author.className = 'profile-feed-comment-author';
       author.textContent = comm.nick || '—';
-      const replyBtn = document.createElement('button');
-      replyBtn.className = 'profile-feed-comment-reply';
-      replyBtn.dataset.commentId = comm.id;
-      replyBtn.type = 'button';
-      replyBtn.textContent = 'Ответить';
-      authorLine.append(author, replyBtn);
-
       const text = document.createElement('div');
       text.className = 'profile-feed-comment-text';
       text.textContent = comm.text;
@@ -564,7 +557,17 @@
       date.className = 'profile-feed-comment-date';
       date.textContent = comm.created_at ? new Date(comm.created_at).toLocaleString('ru-RU') : '';
 
-      body.append(authorLine, text, date);
+      const replyBtn = document.createElement('button');
+      replyBtn.className = 'profile-feed-comment-reply';
+      replyBtn.dataset.commentId = comm.id;
+      replyBtn.type = 'button';
+      replyBtn.textContent = 'Ответить';
+
+      const metaWrap = document.createElement('div');
+      metaWrap.className = 'profile-feed-comment-meta';
+      metaWrap.append(date, replyBtn);
+
+      body.append(authorLine, text, metaWrap);
       row.append(avatar, body);
       wrapper.appendChild(row);
 
@@ -574,9 +577,24 @@
       replySlot.dataset.postId = String(postId);
       wrapper.appendChild(replySlot);
 
-      if (Array.isArray(comm.replies) && comm.replies.length){
-        const thread = document.createElement('div');
+      const repliesCount = Array.isArray(comm.replies) ? comm.replies.length : 0;
+      let thread = null;
+      if (repliesCount){
+        const toggleReplies = document.createElement('button');
+        toggleReplies.className = 'profile-feed-comment-toggle';
+        toggleReplies.type = 'button';
+        toggleReplies.dataset.commentId = comm.id;
+        toggleReplies.dataset.postId = String(postId);
+        toggleReplies.dataset.state = 'hidden';
+        toggleReplies.textContent = `Показать ответы (${repliesCount})`;
+        toggleReplies.dataset.label = toggleReplies.textContent;
+        wrapper.appendChild(toggleReplies);
+
+        thread = document.createElement('div');
         thread.className = 'profile-feed-comment-thread';
+        thread.dataset.commentId = comm.id;
+        thread.hidden = true;
+        thread.style.display = 'none';
         comm.replies.forEach(child => thread.appendChild(renderCommentNode(child, postId)));
         wrapper.appendChild(thread);
       }
@@ -597,6 +615,9 @@
         const node = renderCommentNode(comm, postId);
         list.appendChild(node);
       });
+      if (comments.length){
+        const hideBtn = document.createElement('button'); hideBtn.className='profile-feed-comments-hide'; hideBtn.dataset.postId = String(postId); hideBtn.type='button'; hideBtn.textContent='Скрыть комментарии'; list.parentElement?.appendChild(hideBtn);
+      }
     }
 
     async function ensureComments(postId){
@@ -878,7 +899,7 @@
             return;
           }
 
-        const commentsBtn = e.target.closest('.profile-feed-action.comment');
+          const commentsBtn = e.target.closest('.profile-feed-action.comment');
         if (commentsBtn){
           e.preventDefault();
           const postId = parseInt(commentsBtn.dataset.postId, 10);
@@ -900,11 +921,11 @@
           return;
         }
 
-        const replyBtn = e.target.closest('.profile-feed-comment-reply');
-        if (replyBtn){
-          e.preventDefault();
-          const commentId = parseInt(replyBtn.dataset.commentId, 10);
-          if (!Number.isInteger(commentId)) return;
+          const replyBtn = e.target.closest('.profile-feed-comment-reply');
+          if (replyBtn){
+            e.preventDefault();
+            const commentId = parseInt(replyBtn.dataset.commentId, 10);
+            if (!Number.isInteger(commentId)) return;
           const wrapper = replyBtn.closest('.profile-feed-comment-wrapper');
           if (!wrapper) return;
           const postId = parseInt(wrapper.dataset.postId || wrapper.closest('.profile-feed-comments')?.dataset.postId, 10);
@@ -921,9 +942,42 @@
             const input = form.querySelector('input[name="comment"]');
             if (input) input.focus();
           }
-          return;
-        }
-      });
+            return;
+          }
+
+          const toggleReplies = e.target.closest('.profile-feed-comment-toggle');
+          if (toggleReplies){
+            e.preventDefault();
+            const commentId = parseInt(toggleReplies.dataset.commentId, 10);
+            const postId = parseInt(toggleReplies.dataset.postId, 10);
+            if (!Number.isInteger(commentId) || !Number.isInteger(postId)) return;
+            const wrapper = toggleReplies.closest('.profile-feed-comment-wrapper');
+            if (!wrapper) return;
+            const thread = wrapper.querySelector(`.profile-feed-comment-thread[data-comment-id="${commentId}"]`);
+            if (!thread) return;
+            const state = toggleReplies.dataset.state === 'hidden';
+            toggleReplies.dataset.state = state ? 'shown' : 'hidden';
+            if (state) {
+              toggleReplies.dataset.label = toggleReplies.textContent;
+              toggleReplies.textContent = 'Скрыть ответы';
+            } else {
+              const label = toggleReplies.dataset.label;
+              if (label) toggleReplies.textContent = label;
+            }
+            thread.hidden = !state;
+            thread.style.display = state ? 'flex' : 'none';
+            if (state){
+              // ensure replies exist if collapsed not loaded
+              const existing = postCommentsCache.get(postId) || [];
+              const parent = findCommentInTree(existing, commentId);
+              if (!parent || !Array.isArray(parent.replies) || !parent.replies.length){
+                // should not happen, but fallback to reload
+                await ensureComments(postId);
+              }
+            }
+            return;
+          }
+        });
 
         feedGrid.addEventListener('submit', async (e)=>{
           const form = e.target.closest('.profile-feed-comment-form');
