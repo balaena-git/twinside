@@ -9,6 +9,7 @@ import feedRouter from "./feed.js";
 import usersRouter from "./users.js";
 import friendsRouter from "./friends.js";
 import photosRouter from "./photos.js";
+import postsRouter from "./posts.js";
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use(feedRouter);
 router.use(usersRouter);
 router.use(friendsRouter);
 router.use(photosRouter);
+router.use(postsRouter);
 
 export default router;

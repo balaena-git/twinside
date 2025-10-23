@@ -41,6 +41,9 @@ router.get("/overview", authMiddleware, (req, res) => {
     const photosCount = db
       .prepare(`SELECT COUNT(*) as c FROM photos WHERE user_id=?`)
       .get(u.id).c;
+    const postsCount = db
+      .prepare(`SELECT COUNT(*) as c FROM posts WHERE user_id=?`)
+      .get(u.id).c;
 
     const calcAge = (iso) => {
       if (!iso) return null;
@@ -74,7 +77,7 @@ router.get("/overview", authMiddleware, (req, res) => {
         premium_until: u.premium_until || null,
         counters: {
           friends: friendsCount,
-          posts: 0,
+          posts: postsCount,
           photos: photosCount || 0,
         },
       },

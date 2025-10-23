@@ -12,18 +12,38 @@ router.get("/users/:id/profile", (req, res) => {
       FROM users WHERE id=? AND IFNULL(banned,0)=0
     `).get(id);
     if (!u) return res.status(404).json({ ok: false, error: "not_found" });
-    res.json({ ok: true, profile: {
-      id: u.id,
-      nick: u.nick,
-      city: u.city,
-      gender: u.gender,
-      looking_for: u.looking_for || '',
-      last_active: u.last_active || null,
-      about: u.about || '',
-      interests: u.interests || '',
-      avatar: u.avatar_path || null,
-      premium: !!u.premium,
-    }});
+    const friendsCount = db
+      .prepare(
+        `SELECT COUNT(*) as c FROM friends WHERE (user_id=? OR friend_id=?) AND status='accepted'`
+      )
+      .get(u.id, u.id).c;
+    const photosCount = db
+      .prepare(`SELECT COUNT(*) as c FROM photos WHERE user_id=?`)
+      .get(u.id)?.c || 0;
+    const postsCount = db
+      .prepare(`SELECT COUNT(*) as c FROM posts WHERE user_id=?`)
+      .get(u.id)?.c || 0;
+
+    res.json({
+      ok: true,
+      profile: {
+        id: u.id,
+        nick: u.nick,
+        city: u.city,
+        gender: u.gender,
+        looking_for: u.looking_for || '',
+        last_active: u.last_active || null,
+        about: u.about || '',
+        interests: u.interests || '',
+        avatar: u.avatar_path || null,
+        premium: !!u.premium,
+        counters: {
+          friends: friendsCount,
+          photos: photosCount,
+          posts: postsCount,
+        },
+      },
+    });
   } catch (e) {
     console.error("/users/:id/profile:", e);
     res.status(500).json({ ok: false, error: "server_error" });

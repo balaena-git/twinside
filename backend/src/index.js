@@ -47,6 +47,106 @@ try {
   console.error("DB migration error:", e);
 }
 
+try {
+  const hasPostsTable = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='posts'"
+  ).get();
+  if (!hasPostsTable) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        kind TEXT NOT NULL DEFAULT 'post',
+        text TEXT,
+        attachments TEXT,
+        poll TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_posts_user ON posts(user_id);
+    `);
+  }
+} catch (e) {
+  console.error("Posts table migration error:", e);
+}
+
+try {
+  const postCols = db.prepare("PRAGMA table_info(posts)").all().map((c) => c.name);
+  if (!postCols.includes("parent_id")) {
+    db.exec(
+      "ALTER TABLE posts ADD COLUMN parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE"
+    );
+  }
+  db.exec("CREATE INDEX IF NOT EXISTS idx_posts_user ON posts(user_id)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_posts_parent ON posts(parent_id)");
+} catch (e) {
+  console.error("Posts parent column migration error:", e);
+}
+
+try {
+  const hasPostLikes = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='post_likes'"
+  ).get();
+  if (!hasPostLikes) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS post_likes (
+        post_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        PRIMARY KEY(post_id, user_id),
+        FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_post_likes_post ON post_likes(post_id);
+      CREATE INDEX IF NOT EXISTS idx_post_likes_user ON post_likes(user_id);
+    `);
+  }
+} catch (e) {
+  console.error("Post likes table migration error:", e);
+}
+
+try {
+  const hasPostComments = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='post_comments'"
+  ).get();
+  if (!hasPostComments) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS post_comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments(post_id);
+      CREATE INDEX IF NOT EXISTS idx_post_comments_user ON post_comments(user_id);
+    `);
+  }
+} catch (e) {
+  console.error("Post comments table migration error:", e);
+}
+
+try {
+  const commentCols = db
+    .prepare("PRAGMA table_info(post_comments)")
+    .all()
+    .map((c) => c.name);
+  if (!commentCols.includes("parent_id")) {
+    db.exec(
+      "ALTER TABLE post_comments ADD COLUMN parent_id INTEGER REFERENCES post_comments(id) ON DELETE CASCADE"
+    );
+  }
+  db.exec("CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments(post_id)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_post_comments_user ON post_comments(user_id)");
+  db.exec(
+    "CREATE INDEX IF NOT EXISTS idx_post_comments_parent ON post_comments(parent_id)"
+  );
+} catch (e) {
+  console.error("Post comments parent column migration error:", e);
+}
+
 const app = express();
 
 const corsOrigins = CORS_ORIGIN ? CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean) : true;

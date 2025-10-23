@@ -97,3 +97,34 @@ CREATE TABLE IF NOT EXISTS ads (
   created_at TEXT NOT NULL,
   updated_at TEXT
 );
+
+-- Посты на стене
+CREATE TABLE IF NOT EXISTS posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'post',
+  text TEXT,
+  attachments TEXT,
+  poll TEXT,
+  parent_id INTEGER,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY(parent_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_posts_user ON posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_posts_parent ON posts(parent_id);
+
+CREATE TABLE IF NOT EXISTS post_comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  parent_id INTEGER,
+  text TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY(parent_id) REFERENCES post_comments(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_comments_user ON post_comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_comments_parent ON post_comments(parent_id);

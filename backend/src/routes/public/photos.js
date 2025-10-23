@@ -29,9 +29,20 @@ router.post("/me/photos", authMiddleware, upload.array("photos", 10), (req, res)
       path: `/uploads/photos/${path.basename(f.path)}`,
     }));
     const stmt = db.prepare(`INSERT INTO photos (user_id, path) VALUES (@user_id, @path)`);
-    const insert = db.transaction((items) => items.forEach((it) => stmt.run(it)));
+    const createdIds = [];
+    const insert = db.transaction((items) =>
+      items.forEach((it) => {
+        const info = stmt.run(it);
+        createdIds.push(info.lastInsertRowid);
+      })
+    );
     insert(rows);
-    res.json({ ok: true, added: rows.length });
+    const photos = createdIds.map((id) =>
+      db
+        .prepare(`SELECT id, path, created_at FROM photos WHERE id=?`)
+        .get(id)
+    );
+    res.json({ ok: true, added: rows.length, photos: photos.filter(Boolean) });
   } catch (e) {
     console.error("/me/photos:", e);
     res.status(500).json({ ok: false, error: "server_error" });
@@ -68,4 +79,3 @@ router.delete("/me/photos/:id", authMiddleware, (req, res) => {
 });
 
 export default router;
-
