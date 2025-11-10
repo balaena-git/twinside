@@ -19,13 +19,11 @@ const createStorage = (dir) =>
 export function createUploaders() {
   const avatarsDir = path.join(UPLOADS_ROOT, "avatars");
   const supportDir = path.join(UPLOADS_ROOT, "support");
-  const adsDir = path.join(UPLOADS_ROOT, "ads");
-  [avatarsDir, supportDir, adsDir].forEach(ensureDir);
+  [avatarsDir, supportDir].forEach(ensureDir);
 
   return {
     avatarUpload: multer({ storage: createStorage(avatarsDir) }),
     supportUpload: multer({ storage: createStorage(supportDir) }),
-    adsUpload: multer({ storage: createStorage(adsDir) }),
   };
 }
 

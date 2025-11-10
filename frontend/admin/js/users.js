@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "POST",
         });
         if (data.ok && data.token) {
-          window.open(`/auth/impersonate?token=${data.token}&next=/app/feed`, "_blank");
+          window.open(`/auth/impersonate?token=${data.token}`, "_blank");
         } else {
           alert(`Ошибка входа: ${data.error || "неизвестная"}`);
         }

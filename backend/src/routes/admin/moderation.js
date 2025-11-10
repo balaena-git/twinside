@@ -1,18 +1,7 @@
 import express from "express";
 import db from "../../db.js";
-import { sendMail } from "../../services/mailService.js";
 
 const router = express.Router();
-
-function logAdminAction({ admin, userId, action, reason = null }) {
-  try {
-    db.prepare(
-      `INSERT INTO admin_logs (admin_email, user_id, action, reason) VALUES (?,?,?,?)`
-    ).run(admin || null, userId, action, reason);
-  } catch (e) {
-    console.warn("Не удалось записать admin_log:", e);
-  }
-}
 
 router.get("/pending", (req, res) => {
   try {
@@ -57,17 +46,17 @@ router.get("/pending", (req, res) => {
       )
       .all(limit, offset);
 
-    const toAvatarUrl = (p) => {
+    const toUrl = (p, folder) => {
       if (!p) return null;
-      if (p.startsWith("/uploads/avatars")) return p;
+      if (p.startsWith("/uploads/")) return p;
       const name = p.split("/").pop();
-      return `/uploads/avatars/${name}`;
+      return `/uploads/${folder}/${name}`;
     };
 
     const users = rows.map((user) => ({
       ...user,
-      avatar_url: toAvatarUrl(user.avatar_path),
-      verify_url: user.verify_path ? `/api/admin/user/${user.id}/verify` : null,
+      avatar_url: toUrl(user.avatar_path, "avatars"),
+      verify_url: toUrl(user.verify_path, "verify"),
     }));
 
     res.json({
@@ -95,15 +84,6 @@ router.post("/approve/:id", (req, res) => {
     `
     );
     stmt.run(id);
-    const user = db.prepare("SELECT email, nick FROM users WHERE id=?").get(id);
-    if (user?.email) {
-      sendMail({
-        to: user.email,
-        subject: "TwinSide — анкета одобрена",
-        html: `<p>Ваша анкета одобрена 🎉 Добро пожаловать, ${user.nick || ""}!</p>`,
-      }).catch(() => {});
-    }
-    logAdminAction({ admin: req.session?.admin?.email, userId: id, action: "approve" });
     res.json({ ok: true });
   } catch (e) {
     console.error("Ошибка /api/admin/approve/:id:", e);
@@ -125,41 +105,9 @@ router.post("/reject/:id", (req, res) => {
     `
     );
     stmt.run(reason || "Без указания причины", id);
-    const user = db.prepare("SELECT email, nick FROM users WHERE id=?").get(id);
-    if (user?.email) {
-      const r = reason || "Причина не указана";
-      sendMail({
-        to: user.email,
-        subject: "TwinSide — анкета отклонена",
-        html: `<p>Анкета отклонена.</p><p>Причина: ${r}</p><p>Вы можете исправить и отправить заново.</p>`,
-      }).catch(() => {});
-    }
-    logAdminAction({ admin: req.session?.admin?.email, userId: id, action: "reject", reason });
     res.json({ ok: true });
   } catch (e) {
     console.error("Ошибка /api/admin/reject/:id:", e);
-    res.status(500).json({ ok: false, error: "server_error" });
-  }
-});
-
-router.post("/require-payment/:id", (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    db.prepare(
-      `UPDATE users SET status='requires_payment', updated_at=datetime('now') WHERE id=?`
-    ).run(id);
-    const user = db.prepare("SELECT email, nick FROM users WHERE id=?").get(id);
-    if (user?.email) {
-      sendMail({
-        to: user.email,
-        subject: "TwinSide — требуется активация",
-        html: `<p>Почти готово! Для активации аккаунта требуется оплата. Зайдите в профиль, чтобы завершить.</p>`,
-      }).catch(() => {});
-    }
-    logAdminAction({ admin: req.session?.admin?.email, userId: id, action: "require_payment" });
-    res.json({ ok: true });
-  } catch (e) {
-    console.error("Ошибка /api/admin/require-payment/:id:", e);
     res.status(500).json({ ok: false, error: "server_error" });
   }
 });

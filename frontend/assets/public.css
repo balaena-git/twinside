@@ -45,30 +45,3 @@ main {
 .is-hidden {
   display: none !important;
 }
-
-/* === Ads public === */
-.ad-block { 
-  padding: 24px 16px; 
-  display:flex; 
-  justify-content:center;
-}
-.ad-slot { 
-  display:flex; 
-  gap:12px; 
-  flex-wrap:wrap; 
-  max-width: 980px; 
-}
-.ad-item img { 
-  max-width: 320px; 
-  max-height: 160px; 
-  border-radius: 10px; 
-  object-fit: contain; 
-  background:#141418; 
-  box-shadow: 0 4px 16px rgba(0,0,0,.35);
-}
-
-/* CTA banner for activation */
-.cta-banner { padding: 16px; display:flex; justify-content:center; }
-.cta-inner { max-width: 980px; width: 100%; background:#141418; border:1px solid rgba(242,201,76,.3); border-radius:12px; padding:16px; }
-.cta-inner h3 { margin-bottom:8px; color:#f2c94c; }
-.cta-inner p { color:#cfcfe2; margin:0 0 10px; }

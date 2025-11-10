@@ -4,11 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const sections = document.querySelectorAll(".tab-content");
   const withdrawBody = document.querySelector("#withdraw-table tbody");
   const txBody = document.querySelector("#tx-table tbody");
-  const txEmail = document.getElementById("tx-email");
-  const txType = document.getElementById("tx-type");
-  const txRefresh = document.getElementById("tx-refresh");
-  const txExport = document.getElementById("tx-export");
-  const txPagination = document.getElementById("tx-pagination");
   const manualForm = document.getElementById("manual-form");
   const premiumForm = document.getElementById("premium-form");
 
@@ -81,35 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  let txPage = 1;
-  const buildTxQuery = () => {
-    const params = new URLSearchParams();
-    if (txEmail.value.trim()) params.set("email", txEmail.value.trim());
-    if (txType.value) params.set("type", txType.value);
-    params.set("page", String(txPage));
-    params.set("limit", "50");
-    return params.toString();
-  };
-
-  const renderTxPagination = (pg) => {
-    txPagination.innerHTML = "";
-    if (!pg || pg.totalPages <= 1) return;
-    for (let p = 1; p <= pg.totalPages; p += 1) {
-      const b = document.createElement("button");
-      b.textContent = p;
-      b.classList.toggle("active", p === pg.page);
-      b.addEventListener("click", () => { txPage = p; loadTransactions(); });
-      txPagination.appendChild(b);
-    }
-  };
-
   const loadTransactions = async () => {
     setTableMessage(txBody, "Загрузка…", 6);
-    const query = buildTxQuery();
-    const data = await AdminApp.request(`/transactions?${query}`);
+    const data = await AdminApp.request("/transactions");
     if (!data.ok || !Array.isArray(data.list) || data.list.length === 0) {
       setTableMessage(txBody, "Нет транзакций", 6);
-      renderTxPagination({ totalPages: 1, page: 1 });
       return;
     }
 
@@ -126,16 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       txBody.appendChild(tr);
     });
-    renderTxPagination(data.pagination);
   };
-
-  txRefresh?.addEventListener("click", () => { txPage = 1; loadTransactions(); });
-  txExport?.addEventListener("click", (e) => {
-    e.preventDefault();
-    const base = `${AdminApp.API}/transactions.csv`;
-    txExport.href = `${base}?${buildTxQuery()}`;
-    window.open(txExport.href, "_blank");
-  });
 
   const handleWithdrawAction = async (event) => {
     const button = event.target.closest("button[data-action]");

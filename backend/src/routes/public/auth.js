@@ -1,5 +1,4 @@
 import express from "express";
-import db from "../../db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
@@ -27,34 +26,9 @@ import {
 
 const router = express.Router();
 
-// Simple in-memory throttle for resend-confirmation
-const resendBuckets = new Map(); // key: email, value: { lastAt: number, day: string, count: number }
-const RESEND_MIN_INTERVAL_MS = 60 * 1000; // 60s
-const RESEND_DAILY_LIMIT = 5;
-
-// Simple in-memory throttle for register/login
-const rl = {
-  register: new Map(),
-  login: new Map(),
-};
-const RL_WINDOW_MS = 60 * 1000; // 1 minute
-const RL_MAX = 20; // max attempts per minute per IP/email
-function allow(map, key) {
-  const now = Date.now();
-  const b = map.get(key) || { start: now, count: 0 };
-  if (now - b.start > RL_WINDOW_MS) {
-    b.start = now;
-    b.count = 0;
-  }
-  b.count += 1;
-  map.set(key, b);
-  return b.count <= RL_MAX;
-}
-
 router.post("/register", async (req, res) => {
   try {
-    if (!allow(rl.register, req.ip)) return res.status(429).json({ error: "rate_limited" });
-    const { email, password, nick, gender, dob, male_dob, female_dob, city, age, male_age, female_age } =
+    const { email, password, nick, gender, dob, male_dob, female_dob, city } =
       req.body;
 
     if (!email || !password || !nick || !gender || !city) {
@@ -69,29 +43,8 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "nick_exists" });
     }
 
-    // Age validation (allow age fields as fallback if DOB is not provided)
-    const isPair = gender === "pair";
-    const toInt = (v) => (v === undefined || v === null ? NaN : parseInt(v, 10));
-    if (!isPair) {
-      if (dob) {
-        const years = Math.floor((Date.now() - new Date(dob).getTime()) / 31557600000);
-        if (isNaN(years) || years < 18) return res.status(400).json({ error: "age_restriction" });
-      } else if (!isNaN(toInt(age))) {
-        if (toInt(age) < 18) return res.status(400).json({ error: "age_restriction" });
-      }
-    } else {
-      if (male_dob && female_dob) {
-        const ym = Math.floor((Date.now() - new Date(male_dob).getTime()) / 31557600000);
-        const yf = Math.floor((Date.now() - new Date(female_dob).getTime()) / 31557600000);
-        if (isNaN(ym) || ym < 18 || isNaN(yf) || yf < 18)
-          return res.status(400).json({ error: "age_restriction" });
-      } else if (!isNaN(toInt(male_age)) && !isNaN(toInt(female_age))) {
-        if (toInt(male_age) < 18 || toInt(female_age) < 18)
-          return res.status(400).json({ error: "age_restriction" });
-      }
-    }
-
     const password_hash = await bcrypt.hash(password, 10);
+    const isPair = gender === "pair";
     const user = {
       email,
       password_hash,
@@ -143,23 +96,6 @@ router.post("/resend-confirmation", async (req, res) => {
     return res.json({ ok: true });
   }
 
-  // throttle by email
-  try {
-    const now = Date.now();
-    const today = new Date().toISOString().slice(0, 10);
-    const bucket = resendBuckets.get(email) || { lastAt: 0, day: today, count: 0 };
-    if (bucket.day !== today) {
-      bucket.day = today;
-      bucket.count = 0;
-    }
-    if (now - bucket.lastAt < RESEND_MIN_INTERVAL_MS || bucket.count >= RESEND_DAILY_LIMIT) {
-      return res.json({ ok: true, limited: true });
-    }
-    bucket.lastAt = now;
-    bucket.count += 1;
-    resendBuckets.set(email, bucket);
-  } catch {}
-
   const token = uuidv4();
   createToken({
     user_id: user.id,
@@ -205,7 +141,6 @@ router.get("/confirm", (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  if (!allow(rl.login, req.ip)) return res.status(429).json({ error: "rate_limited" });
   const { email, password } = req.body;
   const user = getUserByEmail(email);
   if (!user) return res.status(401).json({ error: "invalid_credentials" });
@@ -229,12 +164,6 @@ router.post("/login", async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
     .json({ ok: true, status: user.status });
-
-  try {
-    db.prepare("UPDATE users SET last_active=datetime('now'), updated_at=datetime('now') WHERE id=?").run(
-      user.id
-    );
-  } catch {}
 });
 
 router.post("/forgot", async (req, res) => {
@@ -289,7 +218,7 @@ router.post("/reset", async (req, res) => {
 });
 
 router.get("/impersonate", (req, res) => {
-  const { token, next } = req.query;
+  const { token } = req.query;
   try {
     const data = jwt.verify(token, JWT_SECRET);
     const authToken = jwt.sign({ uid: data.uid }, JWT_SECRET, {
@@ -301,7 +230,7 @@ router.get("/impersonate", (req, res) => {
       secure: COOKIE_SECURE,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    res.redirect(next || "/");
+    res.redirect("/");
   } catch (error) {
     console.error("Имперсонация:", error);
     res.status(400).send("Invalid impersonation token");

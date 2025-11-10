@@ -8,20 +8,7 @@
   <link rel="stylesheet" href="../assets/admin-pages.css" />
 </head>
 <body>
-  <header class="admin-header">
-    <h1>🚨 Жалобы</h1>
-    <nav id="nav" class="admin-nav is-hidden">
-      <a href="/admin/admin.html">🏠 Дашборд</a>
-      <a href="/admin/admin-pending.html">Анкеты</a>
-      <a href="/admin/admin-users.html">Пользователи</a>
-      <a href="/admin/admin-finance.html">Финансы</a>
-      <a href="/admin/admin-promos.html">Промокоды</a>
-      <a href="/admin/admin-support.html">Поддержка</a>
-      <a href="/admin/admin-complaints.html">Жалобы</a>
-      <a href="/admin/admin-ads.html">Реклама</a>
-    </nav>
-    <button id="logout" class="btn violet is-hidden">Выйти</button>
-  </header>
+  <div data-include="/admin/components/header.html"></div>
 
   <main class="is-hidden">
     <div class="toolbar">
@@ -52,8 +39,9 @@
     </table>
   </main>
 
-  <footer>© TwinSide Admin 2025</footer>
+  <div data-include="/admin/components/footer.html"></div>
 
+  <script src="/js/include.js" defer></script>
   <script src="./js/admin-common.js" defer></script>
   <script src="./js/complaints.js" defer></script>
 </body>

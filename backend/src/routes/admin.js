@@ -1,15 +1,12 @@
 import express from "express";
 import { JWT_SECRET } from "../config.js";
 import { createUploaders, logAdminRequest, adminSessionGuard } from "./admin/common.js";
-import { ensureFinanceTables, ensureSupportTables, ensureAdminTables, ensurePromoTables, ensureAdsTables, ensureComplaintsTables, ensureSocialTables, ensurePhotoTables } from "./admin/bootstrap.js";
+import { ensureFinanceTables, ensureSupportTables } from "./admin/bootstrap.js";
 import financeRouter from "./admin/finance.js";
 import dashboardRouter from "./admin/dashboard.js";
 import createUsersRouter from "./admin/users.js";
 import moderationRouter from "./admin/moderation.js";
 import createSupportRouter from "./admin/support.js";
-import createAdsRouter from "./admin/ads.js";
-import complaintsRouter from "./admin/complaints.js";
-import promosRouter from "./admin/promos.js";
 import {
   registerPublicAuthRoutes,
   createProtectedAuthRouter,
@@ -32,14 +29,8 @@ if (!ADMIN_EMAIL || !ADMIN_PASS) {
 
 ensureFinanceTables();
 ensureSupportTables();
-ensureAdminTables();
-ensurePromoTables();
-ensureAdsTables();
-ensureComplaintsTables();
-ensureSocialTables();
-ensurePhotoTables();
 
-const { avatarUpload, supportUpload, adsUpload } = createUploaders();
+const { avatarUpload, supportUpload } = createUploaders();
 
 router.use(logAdminRequest);
 router.use((req, _res, next) => {
@@ -56,8 +47,5 @@ router.use(dashboardRouter);
 router.use(createUsersRouter({ avatarUpload }));
 router.use(moderationRouter);
 router.use(createSupportRouter({ supportUpload }));
-router.use(promosRouter);
-router.use(createAdsRouter({ adsUpload }));
-router.use(complaintsRouter);
 
 export default router;

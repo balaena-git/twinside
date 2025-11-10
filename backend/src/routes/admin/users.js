@@ -1,7 +1,5 @@
 import express from "express";
-import path from "path";
 import db from "../../db.js";
-import { UPLOADS_ROOT } from "../../config.js";
 
 export default function createUsersRouter({ avatarUpload }) {
   const router = express.Router();
@@ -149,25 +147,6 @@ export default function createUsersRouter({ avatarUpload }) {
     } catch (e) {
       console.error("Ошибка /api/admin/user/:id DELETE:", e);
       res.status(500).json({ ok: false, error: "server_error" });
-    }
-  });
-
-  // Serve verify photo securely for admins only
-  router.get("/user/:id/verify", (req, res) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      const row = db
-        .prepare("SELECT verify_path FROM users WHERE id=?")
-        .get(id);
-      if (!row || !row.verify_path) return res.status(404).send("not_found");
-
-      // Normalize to a file inside uploads/verify
-      const fileName = path.basename(row.verify_path);
-      const absPath = path.join(UPLOADS_ROOT, "verify", fileName);
-      return res.sendFile(absPath);
-    } catch (e) {
-      console.error("Ошибка выдачи verify фото:", e);
-      return res.status(500).send("server_error");
     }
   });
 

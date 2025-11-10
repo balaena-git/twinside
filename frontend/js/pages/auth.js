@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // auth page specific behavior
   const ageModal = document.getElementById("ageModal");
   const authBox = document.getElementById("authBox");
   const yesBtn = document.getElementById("yesBtn");
@@ -42,17 +43,16 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const showAuthContent = () => {
-    ageModal.classList.add("is-hidden");
-    authBox.classList.remove("is-hidden");
+    if (ageModal) ageModal.classList.add("is-hidden");
+    if (authBox) authBox.classList.remove("is-hidden");
   };
 
-  yesBtn.addEventListener("click", () => {
+  if (yesBtn) yesBtn.addEventListener("click", () => {
     localStorage.setItem("age_confirmed", "1");
     showAuthContent();
   });
-
-  noBtn.addEventListener("click", () => {
-    alert("Доступ запрещён несовершеннолетним.");
+  if (noBtn) noBtn.addEventListener("click", () => {
+    alert("Доступ ограничен несовершеннолетним.");
     window.close();
   });
 
@@ -62,45 +62,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const activateForm = (target) => {
     const isLogin = target === "login";
-    loginForm.classList.toggle("active", isLogin);
-    tabLogin.classList.toggle("active", isLogin);
-    registerForm.classList.toggle("active", !isLogin);
-    tabRegister.classList.toggle("active", !isLogin);
+    if (loginForm) loginForm.classList.toggle("active", isLogin);
+    if (tabLogin) tabLogin.classList.toggle("active", isLogin);
+    if (registerForm) registerForm.classList.toggle("active", !isLogin);
+    if (tabRegister) tabRegister.classList.toggle("active", !isLogin);
   };
 
-  tabLogin.addEventListener("click", () => activateForm("login"));
-  tabRegister.addEventListener("click", () => activateForm("register"));
+  if (tabLogin) tabLogin.addEventListener("click", () => activateForm("login"));
+  if (tabRegister) tabRegister.addEventListener("click", () => activateForm("register"));
 
   const togglePairFields = () => {
-    const isPair = genderSelect.value === "pair";
-    ageInput.classList.toggle("is-hidden", isPair);
-    pairAges.classList.toggle("active", isPair);
+    const isPair = genderSelect && genderSelect.value === "pair";
+    if (ageInput) ageInput.classList.toggle("is-hidden", isPair);
+    if (pairAges) pairAges.classList.toggle("active", isPair);
   };
-  genderSelect.addEventListener("change", togglePairFields);
-  togglePairFields();
+  if (genderSelect) {
+    genderSelect.addEventListener("change", togglePairFields);
+    togglePairFields();
+  }
 
-  cityInput.addEventListener("input", () => {
-    const query = cityInput.value.trim().toLowerCase();
-    cityList.innerHTML = "";
-    cities
-      .filter((city) => city.toLowerCase().includes(query))
-      .forEach((city) => {
-        const option = document.createElement("option");
-        option.value = city;
-        cityList.appendChild(option);
-      });
-  });
+  if (cityInput) {
+    cityInput.addEventListener("input", () => {
+      const query = cityInput.value.trim().toLowerCase();
+      if (cityList) cityList.innerHTML = "";
+      cities
+        .filter((city) => city.toLowerCase().includes(query))
+        .forEach((city) => {
+          const option = document.createElement("option");
+          option.value = city;
+          cityList.appendChild(option);
+        });
+    });
+  }
 
   const updateRegisterState = () => {
+    if (!registerBtn || !agree18 || !agreeRules) return;
     registerBtn.disabled = !(agree18.checked && agreeRules.checked);
   };
-  agree18.addEventListener("change", updateRegisterState);
-  agreeRules.addEventListener("change", updateRegisterState);
+  if (agree18) agree18.addEventListener("change", updateRegisterState);
+  if (agreeRules) agreeRules.addEventListener("change", updateRegisterState);
   updateRegisterState();
 
-  loginForm.addEventListener("submit", async (event) => {
+  if (loginForm) loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-
     try {
       const data = await PublicApp.request("/auth/login", {
         method: "POST",
@@ -113,7 +117,6 @@ document.addEventListener("DOMContentLoaded", () => {
         alert(`Ошибка входа: ${data.error || "неизвестная"}`);
         return;
       }
-
       switch (data.status) {
         case "email_confirmed":
           window.location.href = "/public/profile-setup";
@@ -121,8 +124,11 @@ document.addEventListener("DOMContentLoaded", () => {
         case "profile_pending":
           window.location.href = "/public/pending";
           break;
+        case "requires_payment":
+          window.location.href = "/app/feed";
+          break;
         case "approved":
-          window.location.href = "/public";
+          window.location.href = "/app/feed";
           break;
         default:
           alert(`Неизвестный статус: ${data.status}`);
@@ -132,23 +138,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  registerForm.addEventListener("submit", async (event) => {
+  if (registerForm) registerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-
     const payload = {
       email: document.getElementById("reg-email").value,
       password: document.getElementById("reg-password").value,
       nick: document.getElementById("nick").value,
-      gender: genderSelect.value,
-      city: cityInput.value,
-      age: ageInput.value,
+      gender: genderSelect ? genderSelect.value : undefined,
+      city: cityInput ? cityInput.value : undefined,
+      age: ageInput ? ageInput.value : undefined,
     };
-
-    if (genderSelect.value === "pair") {
+    if (genderSelect && genderSelect.value === "pair") {
       payload.male_age = document.getElementById("male_age").value;
       payload.female_age = document.getElementById("female_age").value;
     }
-
     try {
       const data = await PublicApp.request("/auth/register", {
         method: "POST",

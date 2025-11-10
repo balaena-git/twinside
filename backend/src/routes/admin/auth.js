@@ -3,19 +3,7 @@ import jwt from "jsonwebtoken";
 import db from "../../db.js";
 
 export function registerPublicAuthRoutes(router, { adminEmail, adminPass }) {
-  // simple in-memory throttle
-  const bucket = new Map();
-  const WINDOW = 60 * 1000;
-  const MAX = 30;
-  const allow = (key) => {
-    const now = Date.now();
-    const b = bucket.get(key) || { start: now, count: 0 };
-    if (now - b.start > WINDOW) { b.start = now; b.count = 0; }
-    b.count += 1; bucket.set(key, b); return b.count <= MAX;
-  };
-
   router.post("/login", (req, res) => {
-    if (!allow(req.ip)) return res.status(429).json({ ok: false, error: "rate_limited" });
     const { email, password } = req.body;
     if (
       adminEmail &&

@@ -118,13 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rejectBtn.dataset.id = user.id;
     rejectBtn.textContent = "Отклонить";
 
-    const requirePayBtn = document.createElement("button");
-    requirePayBtn.className = "btn";
-    requirePayBtn.dataset.action = "require_payment";
-    requirePayBtn.dataset.id = user.id;
-    requirePayBtn.textContent = "💰 Требует оплаты";
-
-    actions.append(approveBtn, rejectBtn, requirePayBtn);
+    actions.append(approveBtn, rejectBtn);
 
     card.append(img, info, actions);
     return card;
@@ -145,13 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const data = await AdminApp.request(`/pending?${params.toString()}`);
-    if (!data.ok) {
-      setMessage(`Ошибка: ${data.error || "server_error"}`);
-      pageInfo.textContent = "Страница 1 из 1";
-      state.pages = 1;
-      return;
-    }
-    if (!Array.isArray(data.users) || data.users.length === 0) {
+    if (!data.ok || !Array.isArray(data.users) || data.users.length === 0) {
       setMessage("Нет анкет для модерации.");
       pageInfo.textContent = "Страница 1 из 1";
       state.pages = 1;
@@ -197,18 +185,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       if (!response.ok) {
         alert(`Ошибка: ${response.error || "не удалось отклонить анкету"}`);
-        return;
-      }
-      loadPending();
-    } else if (button.dataset.action === "require_payment") {
-      if (!confirm("Перевести анкету в статус 'Требуется оплата'?")) return;
-      const response = await AdminApp.request(`/require-payment/${userId}`, {
-        method: "POST",
-      });
-      if (!response.ok) {
-        alert(
-          `Ошибка: ${response.error || "не удалось установить статус оплаты"}`
-        );
         return;
       }
       loadPending();

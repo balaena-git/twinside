@@ -59,46 +59,6 @@
   color: #eaeaea;
 }
 
-/* === Promo & Ads forms === */
-.promo-form, .ad-form {
-  background: #1c1c22;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 0 15px rgba(127,61,244,.25);
-  width: 100%;
-  max-width: 1000px;
-  margin: 20px auto;
-}
-.promo-form .hint, .ad-form .hint {
-  color: #cfcfe2;
-  font-size: 14px;
-  margin-top: -6px;
-  margin-bottom: 12px;
-}
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-}
-.field label {
-  display: block;
-  color: #f2c94c;
-  font-size: 13px;
-  margin-bottom: 6px;
-}
-.field input, .field select {
-  width: 100%;
-  background: #141418;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-.inline { display: inline-flex; align-items: center; gap: 8px; }
-.actions { margin-top: 12px; }
-
-.ad-list, .promo-list { margin-top: 20px; }
-
 .action-btn {
   background: #7f3df4;
   border: none;

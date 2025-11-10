@@ -17,7 +17,6 @@
       <a href="/admin/admin-finance.html">Финансы</a>
       <a href="/admin/admin-promos.html">Промокоды</a>
       <a href="/admin/admin-support.html">Поддержка</a>
-      <a href="/admin/admin-complaints.html">Жалобы</a>
       <a href="/admin/admin-ads.html">Реклама</a>
     </nav>
     <button id="logout" class="btn violet is-hidden">Выйти</button>
@@ -113,19 +112,6 @@
 
     <section id="history" class="tab-content">
       <h2>📊 История транзакций</h2>
-      <div class="filters">
-        <input id="tx-email" placeholder="Email (опц.)">
-        <select id="tx-type">
-          <option value="">Все типы</option>
-          <option value="deposit">deposit</option>
-          <option value="withdraw">withdraw</option>
-          <option value="promo">promo</option>
-          <option value="manual">manual</option>
-          <option value="premium">premium</option>
-        </select>
-        <button id="tx-refresh" class="btn">Обновить</button>
-        <a id="tx-export" class="btn" href="#">Экспорт CSV</a>
-      </div>
       <table id="tx-table" class="admin-table">
         <thead>
           <tr>
@@ -143,7 +129,6 @@
           </tr>
         </tbody>
       </table>
-      <div id="tx-pagination" class="pagination"></div>
     </section>
   </main>
 

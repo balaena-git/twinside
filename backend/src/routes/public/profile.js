@@ -1,10 +1,8 @@
 import express from "express";
 import path from "path";
-import fs from "fs";
 import { authMiddleware } from "../../middlewares/auth.js";
 import upload from "../../middlewares/userUploads.js";
 import { getUserById, updateProfile } from "../../repositories/usersRepository.js";
-import { ensureMinSizeOrThrow } from "../../utils/image.js";
 
 const router = express.Router();
 
@@ -36,19 +34,6 @@ router.post(
       const looking_for = (req.body.looking_for || "").toString();
       const interests = (req.body.interests || "").toString();
 
-      // Validate minimal dimensions (>= 600x600)
-      try {
-        ensureMinSizeOrThrow(avatarFile.path, 600, 600);
-        ensureMinSizeOrThrow(verifyFile.path, 600, 600);
-      } catch (err) {
-        try { fs.unlinkSync(avatarFile.path); } catch {}
-        try { fs.unlinkSync(verifyFile.path); } catch {}
-        if (err.code === "IMAGE_TOO_SMALL") {
-          return res.status(400).json({ error: "image_too_small", width: err.width, height: err.height });
-        }
-        return res.status(400).json({ error: "invalid_image" });
-      }
-
       const avatar_path = `/uploads/avatars/${path.basename(avatarFile.path)}`;
       const verify_path = `/uploads/verify/${path.basename(verifyFile.path)}`;
 
@@ -72,24 +57,3 @@ router.post(
 );
 
 export default router;
-
-// Inline edit basic info (about, interests, city)
-router.patch("/me/info", authMiddleware, (req, res) => {
-  try {
-    const user = getUserById(req.user.uid);
-    if (!user) return res.status(404).json({ ok: false, error: "not_found" });
-
-    const about = (req.body.about ?? user.about ?? "").toString().slice(0, 300);
-    const interests = (req.body.interests ?? user.interests ?? "").toString().slice(0, 300);
-    const city = (req.body.city ?? user.city ?? "").toString().slice(0, 100);
-
-    // direct SQL update (usersRepository.updateProfile affects status/photos)
-    const stmt = `UPDATE users SET about=?, interests=?, city=?, updated_at=datetime('now') WHERE id=?`;
-    db.prepare(stmt).run(about, interests, city, user.id);
-
-    res.json({ ok: true, about, interests, city });
-  } catch (e) {
-    console.error("PATCH /profile/me/info:", e);
-    res.status(500).json({ ok: false, error: "server_error" });
-  }
-});

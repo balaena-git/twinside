@@ -140,66 +140,28 @@ router.post("/premium", (req, res) => {
 
 router.get("/transactions", (req, res) => {
   try {
-    const page = Math.max(parseInt(req.query.page || "1", 10), 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit || "200", 10), 1), 500);
-    const offset = (page - 1) * limit;
-    const type = (req.query.type || '').trim();
-    const email = (req.query.email || '').trim();
-
-    const where = [];
-    const params = [];
-    if (type) { where.push("t.type = ?"); params.push(type); }
-    if (email) { where.push("u.email = ?"); params.push(email); }
-    const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
-
-    const total = db.prepare(`SELECT COUNT(*) as c FROM transactions t LEFT JOIN users u ON u.id=t.user_id ${whereSQL}`).get(...params).c;
     const rows = db
       .prepare(
         `
-        SELECT t.id, t.user_id, u.email, t.type, t.amount, t.description, t.created_at
+        SELECT 
+          t.id,
+          t.user_id,
+          u.email,
+          t.type,
+          t.amount,
+          t.description,
+          t.created_at
         FROM transactions t
         LEFT JOIN users u ON u.id = t.user_id
-        ${whereSQL}
         ORDER BY t.id DESC
-        LIMIT ${limit} OFFSET ${offset}
+        LIMIT 200
       `
       )
-      .all(...params);
+      .all();
 
-    res.json({ ok: true, list: rows, pagination: { page, limit, total, totalPages: Math.ceil(total/limit) } });
+    res.json({ ok: true, list: rows });
   } catch (e) {
     console.error("Ошибка /api/admin/transactions:", e);
-    res.status(500).json({ ok: false, error: "server_error" });
-  }
-});
-
-router.get("/transactions.csv", (req, res) => {
-  try {
-    const type = (req.query.type || '').trim();
-    const email = (req.query.email || '').trim();
-    const where = [];
-    const params = [];
-    if (type) { where.push("t.type = ?"); params.push(type); }
-    if (email) { where.push("u.email = ?"); params.push(email); }
-    const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
-    const rows = db.prepare(`
-      SELECT t.id, u.email, t.type, t.amount, t.description, t.created_at
-      FROM transactions t LEFT JOIN users u ON u.id=t.user_id
-      ${whereSQL}
-      ORDER BY t.id DESC
-    `).all(...params);
-    const header = 'id,email,type,amount,description,created_at\n';
-    const esc = (v) => {
-      if (v === null || v === undefined) return '';
-      const s = String(v).replaceAll('"', '""');
-      return `"${s}"`;
-    };
-    const csv = header + rows.map(r => [r.id, r.email||'', r.type||'', r.amount||0, r.description||'', r.created_at||''].map(esc).join(',')).join('\n');
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', 'attachment; filename="transactions.csv"');
-    res.send(csv);
-  } catch (e) {
-    console.error("/api/admin/transactions.csv:", e);
     res.status(500).json({ ok: false, error: "server_error" });
   }
 });

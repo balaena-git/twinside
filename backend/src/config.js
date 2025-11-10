@@ -23,7 +23,6 @@ if (!SESSION_SECRET) {
 
 const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || NODE_ENV === 'production';
 const SAME_SITE = COOKIE_SECURE ? 'none' : 'lax';
-const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
 
 const BACKEND_ROOT = path.join(__dirname, '..');
 const UPLOADS_ROOT = path.join(BACKEND_ROOT, 'uploads');
@@ -36,7 +35,6 @@ export {
   SESSION_SECRET,
   COOKIE_SECURE,
   SAME_SITE,
-  CORS_ORIGIN,
   BACKEND_ROOT,
   UPLOADS_ROOT,
 };

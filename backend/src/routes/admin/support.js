@@ -19,18 +19,8 @@ export default function createSupportRouter({ supportUpload }) {
             u.balance,
             u.premium,
             u.avatar_path,
-            (
-              SELECT IFNULL(MAX(created_at), u.created_at)
-              FROM support_messages sm
-              WHERE sm.user_id = u.id
-            ) AS last_time,
-            (
-              SELECT SUBSTR(message, 1, 60)
-              FROM support_messages sm2
-              WHERE sm2.user_id = u.id
-              ORDER BY created_at DESC, id DESC
-              LIMIT 1
-            ) AS last_message,
+            IFNULL(MAX(m.created_at), u.created_at) AS last_time,
+            IFNULL(SUBSTR(MAX(m.message), 1, 60), '—') AS last_message,
             COUNT(CASE WHEN m.is_read = 0 AND m.sender='user' THEN 1 END) AS unread_count,
             IFNULL(t.pinned, 0) AS pinned,
             IFNULL(t.status, 'active') AS status
@@ -195,18 +185,8 @@ export default function createSupportRouter({ supportUpload }) {
             u.balance,  
             u.premium,  
             u.avatar_path,  
-            (
-              SELECT IFNULL(MAX(created_at), u.created_at)
-              FROM support_messages sm
-              WHERE sm.user_id = u.id
-            ) AS last_time,
-            (
-              SELECT SUBSTR(message, 1, 60)
-              FROM support_messages sm2
-              WHERE sm2.user_id = u.id
-              ORDER BY created_at DESC, id DESC
-              LIMIT 1
-            ) AS last_message,
+            IFNULL(MAX(m.created_at), u.created_at) AS last_time,  
+            IFNULL(SUBSTR(MAX(m.message), 1, 60), '—') AS last_message,  
             COUNT(CASE WHEN m.is_read = 0 AND m.sender='user' THEN 1 END) AS unread_count,  
             IFNULL(t.pinned, 0) AS pinned,  
             IFNULL(t.status, 'active') AS status  
