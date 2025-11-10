@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import multer from "multer";
 import { UPLOADS_ROOT } from "../../config.js";
 

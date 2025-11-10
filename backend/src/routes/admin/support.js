@@ -43,7 +43,10 @@ export default function createSupportRouter({ supportUpload }) {
 
   router.get("/support/thread/:id/messages", (req, res) => {
     try {
-      const userId = parseInt(req.params.id, 10);
+      const userId = ensureValidUserId(req.params.id);
+      if (!userId) {
+        return res.status(400).json({ ok: false, error: "invalid_user_id" });
+      }
       const messages = db
         .prepare(
           `
@@ -68,7 +71,10 @@ export default function createSupportRouter({ supportUpload }) {
 
   router.post("/support/thread/:id/message", (req, res) => {
     try {
-      const userId = parseInt(req.params.id, 10);
+      const userId = ensureValidUserId(req.params.id);
+      if (!userId) {
+        return res.status(400).json({ ok: false, error: "invalid_user_id" });
+      }
       const text = (req.body.text || "").trim();
       if (!text) return res.json({ ok: false, error: "empty_message" });
 
@@ -99,7 +105,10 @@ export default function createSupportRouter({ supportUpload }) {
     supportUpload.single("file"),
     (req, res) => {
       try {
-        const userId = parseInt(req.params.id, 10);
+        const userId = ensureValidUserId(req.params.id);
+        if (!userId) {
+          return res.status(400).json({ ok: false, error: "invalid_user_id" });
+        }
         const text = req.body.text || "";
         const filePath = req.file ? `/uploads/support/${req.file.filename}` : null;
 
@@ -128,7 +137,10 @@ export default function createSupportRouter({ supportUpload }) {
 
   router.patch("/support/thread/:id", (req, res) => {
     try {
-      const userId = parseInt(req.params.id, 10);
+      const userId = ensureValidUserId(req.params.id);
+      if (!userId) {
+        return res.status(400).json({ ok: false, error: "invalid_user_id" });
+      }
       const { pinned, status } = req.body;
 
       if (pinned !== undefined) {
@@ -160,7 +172,10 @@ export default function createSupportRouter({ supportUpload }) {
 
   router.delete("/support/:id", (req, res) => {
     try {
-      const userId = parseInt(req.params.id, 10);
+      const userId = ensureValidUserId(req.params.id);
+      if (!userId) {
+        return res.status(400).json({ ok: false, error: "invalid_user_id" });
+      }
       db.prepare("DELETE FROM support_messages WHERE user_id = ?").run(userId);
       db.prepare("DELETE FROM support_threads WHERE user_id = ?").run(userId);
       res.json({ ok: true });

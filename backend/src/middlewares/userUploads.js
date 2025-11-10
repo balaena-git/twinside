@@ -1,5 +1,6 @@
 import multer from "multer";
 import path from "path";
+import crypto from "crypto";
 import { AVATARS_DIR, VERIFY_DIR } from "../config/uploads.js";
 
 const storage = multer.diskStorage({
@@ -9,7 +10,8 @@ const storage = multer.diskStorage({
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname || "").toLowerCase();
-    const safe = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+    const random = crypto.randomBytes(16).toString("hex");
+    const safe = `${Date.now()}-${random}${ext}`;
     cb(null, safe);
   },
 });

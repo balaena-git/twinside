@@ -24,6 +24,7 @@ if (!SESSION_SECRET) {
 const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || NODE_ENV === 'production';
 const SAME_SITE = COOKIE_SECURE ? 'none' : 'lax';
 
+>>>>>>> theirs
 const BACKEND_ROOT = path.join(__dirname, '..');
 const UPLOADS_ROOT = path.join(BACKEND_ROOT, 'uploads');
 

@@ -117,7 +117,10 @@ export default function createUsersRouter({ avatarUpload }) {
 
   router.patch("/user/:id", (req, res) => {
     try {
-      const id = parseInt(req.params.id, 10);
+      const id = ensureValidId(req.params.id);
+      if (!id) {
+        return res.status(400).json({ ok: false, error: "invalid_user_id" });
+      }
       const { banned, premium, balance } = req.body;
 
       if (banned !== undefined) {
@@ -129,7 +132,11 @@ export default function createUsersRouter({ avatarUpload }) {
       }
 
       if (balance !== undefined) {
-        db.prepare("UPDATE users SET balance=? WHERE id=?").run(balance, id);
+        const numericBalance = Number.parseInt(balance, 10);
+        if (!Number.isInteger(numericBalance)) {
+          return res.status(400).json({ ok: false, error: "invalid_balance" });
+        }
+        db.prepare("UPDATE users SET balance=? WHERE id=?").run(numericBalance, id);
       }
 
       res.json({ ok: true });
@@ -141,7 +148,10 @@ export default function createUsersRouter({ avatarUpload }) {
 
   router.delete("/user/:id", (req, res) => {
     try {
-      const id = parseInt(req.params.id, 10);
+      const id = ensureValidId(req.params.id);
+      if (!id) {
+        return res.status(400).json({ ok: false, error: "invalid_user_id" });
+      }
       db.prepare("DELETE FROM users WHERE id=? AND is_fake=1").run(id);
       res.json({ ok: true });
     } catch (e) {
