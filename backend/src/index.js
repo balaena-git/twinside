@@ -65,11 +65,6 @@ app.use("/uploads", express.static(UPLOADS_ROOT));
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/admin", adminRoutes);
-// Debug middleware to confirm hits on /api/admin
-app.use('/api/admin', (req, _res, next) => {
-  console.log('[api/admin] hit', req.method, req.url);
-  next();
-});
 app.use(publicRoutes);
 
 const FRONTEND_ROOT = path.join(BACKEND_ROOT, "..", "frontend");

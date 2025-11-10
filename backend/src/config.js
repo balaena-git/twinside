@@ -24,9 +24,25 @@ if (!SESSION_SECRET) {
 const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || NODE_ENV === 'production';
 const SAME_SITE = COOKIE_SECURE ? 'none' : 'lax';
 
->>>>>>> theirs
 const BACKEND_ROOT = path.join(__dirname, '..');
 const UPLOADS_ROOT = path.join(BACKEND_ROOT, 'uploads');
+
+const SMTP_HOST = process.env.SMTP_HOST || '';
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
+const SMTP_USER = process.env.SMTP_USER || '';
+const SMTP_PASS = process.env.SMTP_PASS || '';
+let defaultFrom = 'TwinSide <no-reply@twinside.local>';
+try {
+  const { hostname } = new URL(APP_URL);
+  if (hostname) {
+    defaultFrom = `TwinSide <no-reply@${hostname}>`;
+  }
+} catch (_err) {
+  // keep fallback default
+}
+
+const SMTP_FROM = process.env.SMTP_FROM || defaultFrom;
 
 export {
   NODE_ENV,
@@ -38,4 +54,10 @@ export {
   SAME_SITE,
   BACKEND_ROOT,
   UPLOADS_ROOT,
+  SMTP_HOST,
+  SMTP_PORT,
+  SMTP_SECURE,
+  SMTP_USER,
+  SMTP_PASS,
+  SMTP_FROM,
 };

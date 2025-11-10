@@ -1,5 +1,10 @@
 import express from "express";
 import db from "../../db.js";
+import {
+  ensureValidUserId,
+  runMulter,
+  respondMulterError,
+} from "./common.js";
 
 export default function createSupportRouter({ supportUpload }) {
   const router = express.Router();
@@ -100,40 +105,42 @@ export default function createSupportRouter({ supportUpload }) {
     }
   });
 
-  router.post(
-    "/support/thread/:id/upload",
-    supportUpload.single("file"),
-    (req, res) => {
-      try {
-        const userId = ensureValidUserId(req.params.id);
-        if (!userId) {
-          return res.status(400).json({ ok: false, error: "invalid_user_id" });
-        }
-        const text = req.body.text || "";
-        const filePath = req.file ? `/uploads/support/${req.file.filename}` : null;
-
-        db.prepare(
-          `
-          INSERT INTO support_messages (user_id, sender, message, file_path, created_at)
-          VALUES (?, 'admin', ?, ?, datetime('now'))
-        `
-        ).run(userId, text, filePath);
-
-        db.prepare(
-          `
-          INSERT INTO support_threads (user_id, status)
-          VALUES (?, 'active')
-          ON CONFLICT(user_id) DO UPDATE SET status='active'
-        `
-        ).run(userId);
-
-        res.json({ ok: true });
-      } catch (e) {
-        console.error("Ошибка /support/thread/:id/upload:", e);
-        res.status(500).json({ ok: false, error: "server_error" });
-      }
+  router.post("/support/thread/:id/upload", async (req, res) => {
+    try {
+      await runMulter(supportUpload.single("file"), req, res);
+    } catch (err) {
+      return respondMulterError(res, err);
     }
-  );
+
+    try {
+      const userId = ensureValidUserId(req.params.id);
+      if (!userId) {
+        return res.status(400).json({ ok: false, error: "invalid_user_id" });
+      }
+      const text = req.body.text || "";
+      const filePath = req.file ? `/uploads/support/${req.file.filename}` : null;
+
+      db.prepare(
+        `
+        INSERT INTO support_messages (user_id, sender, message, file_path, created_at)
+        VALUES (?, 'admin', ?, ?, datetime('now'))
+      `
+      ).run(userId, text, filePath);
+
+      db.prepare(
+        `
+        INSERT INTO support_threads (user_id, status)
+        VALUES (?, 'active')
+        ON CONFLICT(user_id) DO UPDATE SET status='active'
+      `
+      ).run(userId);
+
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error("Ошибка /support/thread/:id/upload:", e);
+      return res.status(500).json({ ok: false, error: "server_error" });
+    }
+  });
 
   router.patch("/support/thread/:id", (req, res) => {
     try {

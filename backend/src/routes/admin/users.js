@@ -1,5 +1,6 @@
 import express from "express";
 import db from "../../db.js";
+import { ensureValidId, runMulter, respondMulterError } from "./common.js";
 
 export default function createUsersRouter({ avatarUpload }) {
   const router = express.Router();
@@ -160,10 +161,18 @@ export default function createUsersRouter({ avatarUpload }) {
     }
   });
 
-  router.post("/users/fake", avatarUpload.single("avatar"), (req, res) => {
+  router.post("/users/fake", async (req, res) => {
+    try {
+      await runMulter(avatarUpload.single("avatar"), req, res);
+    } catch (err) {
+      return respondMulterError(res, err);
+    }
+
     try {
       const { nick, email, gender = "woman", city = "", about = "" } = req.body;
-      if (!nick) return res.status(400).json({ ok: false, error: "nick_required" });
+      if (!nick) {
+        return res.status(400).json({ ok: false, error: "nick_required" });
+      }
 
       const now = new Date().toISOString();
       const fakeEmail = email || `${nick.toLowerCase()}@fake.local`;
@@ -193,10 +202,10 @@ export default function createUsersRouter({ avatarUpload }) {
           now
         );
 
-      res.json({ ok: true, id: info.lastInsertRowid, avatar: avatarPath });
+      return res.json({ ok: true, id: info.lastInsertRowid, avatar: avatarPath });
     } catch (e) {
       console.error("Ошибка /api/admin/users/fake:", e);
-      res.status(500).json({ ok: false, error: "server_error" });
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
   });
 
